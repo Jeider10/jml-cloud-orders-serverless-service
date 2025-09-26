@@ -13,6 +13,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -156,6 +157,23 @@ public class OrdenService {
 
         return mapper.mapEntityToResponseDto(guardado);
     }
+
+    @Transactional(readOnly = true)
+    public List<OrdenResponseDTO> listarOrdenesPorEstado(String estadoOrden) {
+        List<OrdenEntity> ordenes = ordenRepository.findByEstadoOrden(estadoOrden);
+        return ordenes.stream()
+                .map(mapper::mapEntityToResponseDto)
+                .toList();
+    }
+
+    @Transactional(readOnly = true)
+    public List<OrdenResponseDTO> listarOrdenesPorClienteYEstado(Long identificacionCliente, String estadoOrden) {
+        List<OrdenEntity> ordenes = ordenRepository.findByIdentificacionClienteAndEstadoOrden(identificacionCliente, estadoOrden);
+        return ordenes.stream()
+                .map(mapper::mapEntityToResponseDto)
+                .toList();
+    }
+
 
 //    @Transactional(readOnly = true)
 //    public List<OrdenResponseDTO> listarProductos() {

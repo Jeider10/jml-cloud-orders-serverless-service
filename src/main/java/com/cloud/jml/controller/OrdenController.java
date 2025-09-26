@@ -56,6 +56,24 @@ public class OrdenController {
         return ResponseEntity.ok(dto);
     }
 
+    @GetMapping("/list/estado")
+    public ResponseEntity<List<OrdenResponseDTO>> listarOrdenesPorEstado(
+            @RequestParam("estado") String estadoOrden) {
+
+        List<OrdenResponseDTO> ordenes = ordenService.listarOrdenesPorEstado(estadoOrden);
+        return ResponseEntity.ok(ordenes);
+    }
+
+    @GetMapping("/list/cliente")
+    public ResponseEntity<List<OrdenResponseDTO>> listarOrdenesPorClienteYEstado(
+            @RequestParam("cliente") Long identificacionCliente,
+            @RequestParam("estado") String estadoOrden) {
+
+        List<OrdenResponseDTO> ordenes = ordenService.listarOrdenesPorClienteYEstado(identificacionCliente, estadoOrden);
+        return ResponseEntity.ok(ordenes);
+    }
+
+
 //    @GetMapping("/listar-productos")
 //    public ResponseEntity<List<OrdenResponseDTO>> listarProductos() {
 //        log.info("📌 Iniciando petición para listar todos los Productos");
