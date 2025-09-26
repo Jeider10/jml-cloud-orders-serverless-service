@@ -8,7 +8,11 @@ import java.util.Optional;
 public interface OrdenRepository extends JpaRepository<OrdenEntity, Long> {
     Optional<OrdenEntity> findByCodigo(Long codigo);
 
+    Optional<OrdenEntity> findFirstByCodigoOrderByFechaCreacionDesc(Long codigo);
+
     Optional<OrdenEntity> findByCodigoAndEstado(Long codigo, String estado);
+
+    Optional<OrdenEntity> findFirstByIdentificacionClienteAndEstado(Long identificacionCliente, String estado);
 
 //    List<OrdenEntity> findByNombre(String nombre);
 //

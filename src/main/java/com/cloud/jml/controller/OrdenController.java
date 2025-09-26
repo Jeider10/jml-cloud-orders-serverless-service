@@ -35,23 +35,6 @@ public class OrdenController {
         return ResponseEntity.ok(crearOrdenVentaResponse);
     }
 
-    @PatchMapping("/ordenes/{id}/cerrar")
-    public ResponseEntity<OrdenResponseDTO> cerrarOrden(@PathVariable Long id) {
-        OrdenResponseDTO dto = ordenService.cerrarOrden(id);
-        return ResponseEntity.ok(dto);
-    }
-
-    @GetMapping("/listar-productos")
-    public ResponseEntity<List<OrdenResponseDTO>> listarProductos() {
-        log.info("📌 Iniciando petición para listar todos los Productos");
-
-        List<OrdenResponseDTO> productos = ordenService.listarProductos();
-
-        log.info("📌 Finaliza petición para listar todos los Productos");
-
-        return ResponseEntity.ok(productos);
-    }
-
     @PutMapping("/restar/{codigo}")
     public ResponseEntity<OrdenResponseDTO> restarCantidadProducto(@PathVariable("codigo") Long codigo, @RequestParam("cantidad") int cantidadARestar) {
 
@@ -62,22 +45,41 @@ public class OrdenController {
         return ResponseEntity.ok(ordenActualizada);
     }
 
-    @DeleteMapping("/eliminar-codigo")
-    public ResponseEntity<Void> eliminarProducto(@RequestParam("codigo") Long codigo) {
-        log.info("📌 Iniciando petición para eliminar Producto con codigo: {}", codigo);
+    @PatchMapping("/cliente/orden/cerrar/{identificacionCliente}")
+    public ResponseEntity<OrdenResponseDTO> cerrarOrdenPorCliente(@PathVariable Long identificacionCliente) {
+        log.info("📌 Iniciando petición para cerrar cuenta: {}", identificacionCliente);
 
-        OrdenRequestDTO ordenRequestDTO = new OrdenRequestDTO();
-        ordenRequestDTO.setCodigo(codigo);
-
-        try {
-            ordenService.eliminarProducto(ordenRequestDTO);
-            log.info("📌 Finalizó petición de eliminación de Producto con codigo: {}", ordenRequestDTO.getCodigo());
-            return ResponseEntity.ok().build();
-        } catch (RuntimeException e) {
-            log.warn("⚠️ Error al eliminar Producto: {}", e.getMessage());
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
-        }
+        OrdenResponseDTO dto = ordenService.cerrarOrdenPorCliente(identificacionCliente);
+        return ResponseEntity.ok(dto);
     }
+
+//    @GetMapping("/listar-productos")
+//    public ResponseEntity<List<OrdenResponseDTO>> listarProductos() {
+//        log.info("📌 Iniciando petición para listar todos los Productos");
+//
+//        List<OrdenResponseDTO> productos = ordenService.listarProductos();
+//
+//        log.info("📌 Finaliza petición para listar todos los Productos");
+//
+//        return ResponseEntity.ok(productos);
+//    }
+
+//    @DeleteMapping("/eliminar-codigo")
+//    public ResponseEntity<Void> eliminarProducto(@RequestParam("codigo") Long codigo) {
+//        log.info("📌 Iniciando petición para eliminar Producto con codigo: {}", codigo);
+//
+//        OrdenRequestDTO ordenRequestDTO = new OrdenRequestDTO();
+//        ordenRequestDTO.setCodigo(codigo);
+//
+//        try {
+//            ordenService.eliminarProducto(ordenRequestDTO);
+//            log.info("📌 Finalizó petición de eliminación de Producto con codigo: {}", ordenRequestDTO.getCodigo());
+//            return ResponseEntity.ok().build();
+//        } catch (RuntimeException e) {
+//            log.warn("⚠️ Error al eliminar Producto: {}", e.getMessage());
+//            return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
+//        }
+//    }
 
 //    @GetMapping("/codigo")
 //    public ResponseEntity<OrdenResponseDTO> obtenerProductoPorCodigo(@RequestParam("codigo") Long codigo) {

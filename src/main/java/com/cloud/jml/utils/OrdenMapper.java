@@ -59,10 +59,6 @@ public class OrdenMapper {
         ordenResponseDTO.setIdentificacionEmpleado(ordenEntity.getIdentificacionEmpleado());
         ordenResponseDTO.setNombreEmpleado(ordenEntity.getNombreEmpleado());
 
-        if (ordenEntity.getFechaOrden() != null) {
-            ordenResponseDTO.setFechaOrden(ordenEntity.getFechaOrden().toString()); // yyyy-MM-dd
-        }
-
         // 🔹 Formatear fechas
         ordenUtils.asignarFechasFormateadas(ordenEntity, ordenResponseDTO);
 

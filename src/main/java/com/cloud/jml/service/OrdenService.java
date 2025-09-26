@@ -70,44 +70,11 @@ public class OrdenService {
     }
 
     @Transactional
-    public OrdenResponseDTO cerrarOrden(Long id) {
-        OrdenEntity orden = ordenRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Orden no encontrada"));
-
-        orden.setEstado("CERRADA");
-        orden.setFechaActualizacion(LocalDateTime.now());
-
-        OrdenEntity guardado = ordenRepository.save(orden);
-        return mapper.mapEntityToResponseDto(guardado);
-    }
-
-    @Transactional(readOnly = true)
-    public List<OrdenResponseDTO> listarProductos() {
-        log.info("📌 Iniciando búsqueda de todos los Productos.");
-
-        // Paso 1: Obtener entidades desde la BD
-        List<OrdenEntity> ordenEntity = ordenRepository.findAll();
-
-        // Paso 2: Convertir a Stream
-        Stream<OrdenEntity> streamProductos = ordenEntity.stream();
-
-        // Paso 3: Mapear cada entidad a DTO
-        Stream<OrdenResponseDTO> streamProductosDTO = streamProductos.map(mapper::mapEntityToResponseDto);
-
-        // Paso 4: Convertir a lista final
-        List<OrdenResponseDTO> productosResponse = streamProductosDTO.toList();
-
-        log.info("📌 Finaliza búsqueda de todos los Productos. Total encontrados: {}", productosResponse.size());
-
-        return productosResponse;
-    }
-
-    @Transactional
     public OrdenResponseDTO restarCantidadProducto(Long codigo, int cantidadARestar) {
         log.info("📌 Iniciando restarCantidadProducto -> codigo: {}, cantidadARestar: {}", codigo, cantidadARestar);
 
         // 1) Buscar la orden (registro) por código (no usar orElseThrow)
-        Optional<OrdenEntity> ordenOpt = ordenRepository.findByCodigo(codigo);
+        Optional<OrdenEntity> ordenOpt = ordenRepository.findFirstByCodigoOrderByFechaCreacionDesc(codigo);
 
         if (ordenOpt.isEmpty()) {
             log.warn("⚠️ Orden (item) no encontrada con codigo: {}", codigo);
@@ -168,22 +135,55 @@ public class OrdenService {
         }
     }
 
-
     @Transactional
-    public void eliminarProducto(OrdenRequestDTO ordenRequestDTO) {
-        log.info("📌 Iniciando eliminación de Producto con codigo: {}", ordenRequestDTO.getCodigo());
+    public OrdenResponseDTO cerrarOrdenPorCliente(Long identificacionCliente) {
+        OrdenEntity orden = ordenRepository
+                .findFirstByIdentificacionClienteAndEstado(identificacionCliente, "ABIERTA")
+                .orElseThrow(() -> new RuntimeException("No existe orden ABIERTA para este cliente"));
 
-        Optional<OrdenEntity> productoOptional = ordenRepository.findByCodigo(ordenRequestDTO.getCodigo());
+        orden.setEstado("CERRADA");
+        orden.setFechaActualizacion(LocalDateTime.now());
 
-        if (productoOptional.isPresent()) {
-            OrdenEntity ordenEntity = productoOptional.get();
-            ordenRepository.delete(ordenEntity);
-            log.info("✅ Producto eliminado con codigo: {}", ordenRequestDTO.getCodigo());
-        } else {
-            log.warn("⚠️ No se encontró el Producto con codigo: {}", ordenRequestDTO.getCodigo());
-            throw new OrdenNoEncontradoException(ordenRequestDTO.getCodigo());
-        }
+        OrdenEntity guardado = ordenRepository.save(orden);
+        return mapper.mapEntityToResponseDto(guardado);
     }
+
+//    @Transactional(readOnly = true)
+//    public List<OrdenResponseDTO> listarProductos() {
+//        log.info("📌 Iniciando búsqueda de todos los Productos.");
+//
+//        // Paso 1: Obtener entidades desde la BD
+//        List<OrdenEntity> ordenEntity = ordenRepository.findAll();
+//
+//        // Paso 2: Convertir a Stream
+//        Stream<OrdenEntity> streamProductos = ordenEntity.stream();
+//
+//        // Paso 3: Mapear cada entidad a DTO
+//        Stream<OrdenResponseDTO> streamProductosDTO = streamProductos.map(mapper::mapEntityToResponseDto);
+//
+//        // Paso 4: Convertir a lista final
+//        List<OrdenResponseDTO> productosResponse = streamProductosDTO.toList();
+//
+//        log.info("📌 Finaliza búsqueda de todos los Productos. Total encontrados: {}", productosResponse.size());
+//
+//        return productosResponse;
+//    }
+
+//    @Transactional
+//    public void eliminarProducto(OrdenRequestDTO ordenRequestDTO) {
+//        log.info("📌 Iniciando eliminación de Producto con codigo: {}", ordenRequestDTO.getCodigo());
+//
+//        Optional<OrdenEntity> productoOptional = ordenRepository.findByCodigo(ordenRequestDTO.getCodigo());
+//
+//        if (productoOptional.isPresent()) {
+//            OrdenEntity ordenEntity = productoOptional.get();
+//            ordenRepository.delete(ordenEntity);
+//            log.info("✅ Producto eliminado con codigo: {}", ordenRequestDTO.getCodigo());
+//        } else {
+//            log.warn("⚠️ No se encontró el Producto con codigo: {}", ordenRequestDTO.getCodigo());
+//            throw new OrdenNoEncontradoException(ordenRequestDTO.getCodigo());
+//        }
+//    }
 
 //    @Transactional(readOnly = true)
 //    public Optional<OrdenResponseDTO> obtenerProductoPorCodigo(Long codigo) {
