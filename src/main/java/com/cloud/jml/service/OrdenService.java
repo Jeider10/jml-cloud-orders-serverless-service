@@ -2,8 +2,8 @@ package com.cloud.jml.service;
 
 import com.cloud.jml.dto.OrdenRequestDTO;
 import com.cloud.jml.dto.OrdenResponseDTO;
-import com.cloud.jml.exception.OrdenDuplicadoException;
 import com.cloud.jml.exception.OrdenNoEncontradoException;
+import com.cloud.jml.model.OrdenDetalleEntity;
 import com.cloud.jml.model.OrdenEntity;
 import com.cloud.jml.repository.OrdenRepository;
 import com.cloud.jml.utils.OrdenMapper;
@@ -12,11 +12,9 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.util.List;
 import java.util.Optional;
-import java.util.stream.Stream;
+import java.util.UUID;
 
 @Slf4j
 @Service
@@ -35,116 +33,127 @@ public class OrdenService {
 
     @Transactional
     public OrdenResponseDTO crearOrdenDeVenta(OrdenRequestDTO ordenRequestDTO) {
-        log.info("📌 Creando orden de venta para producto: {}", ordenRequestDTO.getProducto());
+        log.info("📌 Creando/actualizando Orden de Venta para cliente: {}", ordenRequestDTO.getIdentificacionCliente());
 
-        Optional<OrdenEntity> existente =
-                ordenRepository.findByCodigoAndEstado(ordenRequestDTO.getCodigo(), "ABIERTA");
+        // Buscar si existe una orden ABIERTA para ese cliente
+        Optional<OrdenEntity> existente = ordenRepository.findFirstByIdentificacionClienteAndEstadoOrden(ordenRequestDTO.getIdentificacionCliente(), "ABIERTA");
 
         OrdenEntity ordenEntity;
         if (existente.isPresent()) {
-            // Actualizar orden existente
+            // ✅ Caso: Ya existe una orden ABIERTA -> agregamos detalles
             ordenEntity = existente.get();
-            log.warn("⚠️ Ya existe una orden ABIERTA para el producto {}. Acumulando cantidad.", ordenRequestDTO.getCodigo());
+            log.warn("⚠️ Ya existe una Orden ABIERTA para el cliente {}. Se agregarán los nuevos detalles.", ordenRequestDTO.getIdentificacionCliente());
 
-            ordenEntity.setCantidad(ordenEntity.getCantidad() + ordenRequestDTO.getCantidad());
-            ordenEntity.setPrecio(ordenRequestDTO.getPrecio());
-            ordenEntity.setProducto(ordenRequestDTO.getProducto());
-            ordenEntity.setDescripcion(ordenRequestDTO.getDescripcion());
+            ordenRequestDTO.getDetalles().forEach(detalleDTO -> {
+                OrdenDetalleEntity detalleEntity = mapper.mapDetalleRequestToEntity(detalleDTO);
+                detalleEntity.setOrden(ordenEntity);
+                detalleEntity.setFechaCreacion(LocalDateTime.now());
+                ordenEntity.getDetalles().add(detalleEntity);
+            });
+
             ordenEntity.setIdentificacionCliente(ordenRequestDTO.getIdentificacionCliente());
             ordenEntity.setNombreCliente(ordenRequestDTO.getNombreCliente());
             ordenEntity.setIdentificacionEmpleado(ordenRequestDTO.getIdentificacionEmpleado());
             ordenEntity.setNombreEmpleado(ordenRequestDTO.getNombreEmpleado());
+            ordenEntity.setIdentificacionProveedor(ordenRequestDTO.getIdentificacionProveedor());
+            ordenEntity.setNombreProveedor(ordenRequestDTO.getNombreProveedor());
             ordenEntity.setFechaActualizacion(LocalDateTime.now());
 
         } else {
-            // Crear nueva orden
+            // ✅ Caso: Crear nueva orden
+            log.info("🆕 No existe orden ABIERTA para el cliente {}. Se creará una nueva.", ordenRequestDTO.getIdentificacionCliente());
+
             ordenEntity = mapper.mapRequestDtoToEntity(ordenRequestDTO);
-            ordenEntity.setEstado("ABIERTA");
-            ordenEntity.setFechaOrden(LocalDateTime.now());
+
+            // Generar UUID para numeroOrden si no viene (mapper ya lo genera)
+            if (ordenEntity.getNumeroOrden() == null || ordenEntity.getNumeroOrden().isBlank()) {
+                ordenEntity.setNumeroOrden(UUID.randomUUID().toString());
+            }
+
+            // fijar fecha + estado
+            ordenEntity.setFechaCreacion(LocalDateTime.now());
+            ordenEntity.setEstadoOrden("ABIERTA");
+
+            // asignar fechas de creación en detalles y enlace orden->detalle ya hecho en mapper
+            ordenEntity.getDetalles().forEach(d -> {
+                d.setOrden(ordenEntity);
+                d.setFechaCreacion(LocalDateTime.now());
+            });
         }
 
         OrdenEntity guardado = ordenRepository.save(ordenEntity);
-        log.info("✅ Orden procesada correctamente. ID: {}", guardado.getId());
+        log.info("✅ Orden procesada correctamente. numeroOrden: {} con {} detalle(s)", guardado.getNumeroOrden(), guardado.getDetalles().size());
 
         return mapper.mapEntityToResponseDto(guardado);
     }
 
     @Transactional
-    public OrdenResponseDTO restarCantidadProducto(Long codigo, int cantidadARestar) {
-        log.info("📌 Iniciando restarCantidadProducto -> codigo: {}, cantidadARestar: {}", codigo, cantidadARestar);
+    public OrdenResponseDTO restarCantidadProducto(String numeroOrden, Long codigoProducto, int cantidadARestar) {
+        log.info("📌 Iniciando restarCantidadProducto -> numeroOrden: {}, codigoProducto: {}, cantidadARestar: {}",
+                numeroOrden, codigoProducto, cantidadARestar);
 
-        // 1) Buscar la orden (registro) por código (no usar orElseThrow)
-        Optional<OrdenEntity> ordenOpt = ordenRepository.findFirstByCodigoOrderByFechaCreacionDesc(codigo);
-
+        // 1) Buscar la orden ABIERTA
+        Optional<OrdenEntity> ordenOpt = ordenRepository.findByNumeroOrdenAndEstadoOrden(numeroOrden, "ABIERTA");
         if (ordenOpt.isEmpty()) {
-            log.warn("⚠️ Orden (item) no encontrada con codigo: {}", codigo);
-            throw new OrdenNoEncontradoException(codigo); // tu excepción personalizada
+            log.warn("⚠️ Orden no encontrada con numeroOrden: {}", numeroOrden);
+            throw new RuntimeException("Orden no encontrada: " + numeroOrden);
         }
 
         OrdenEntity orden = ordenOpt.get();
 
-        // 2) Validaciones básicas de cantidad a restar
+        // 2) Buscar el detalle por codigo de producto
+        OrdenDetalleEntity detalle = orden.getDetalles().stream()
+                .filter(d -> d.getCodigo() != null && d.getCodigo().equals(codigoProducto))
+                .findFirst()
+                .orElseThrow(() -> new RuntimeException("Producto no encontrado en la orden: codigo " + codigoProducto));
+
+        // 3) Validaciones básicas de cantidad
         if (cantidadARestar <= 0) {
-            log.warn("⚠️ Intento de restar una cantidad inválida: {} para codigo: {}", cantidadARestar, codigo);
-            throw new IllegalArgumentException("Cantidad a restar inválida: " + cantidadARestar);
+            log.warn("⚠️ Cantidad inválida a restar: {}", cantidadARestar);
+            throw new IllegalArgumentException("Cantidad a restar inválida");
         }
 
-        Long cantidadActual = orden.getCantidad() == null ? 0L : orden.getCantidad();
-        log.info("📌 Cantidad actual en orden (codigo={}): {}", codigo, cantidadActual);
-
-        // 3) Si no hay suficiente cantidad -> error
+        Long cantidadActual = detalle.getCantidad() == null ? 0L : detalle.getCantidad();
         if (cantidadActual < cantidadARestar) {
-            log.warn("⚠️ Stock insuficiente en la orden. codigo={}, cantidadActual={}, intentoRestar={}",
-                    codigo, cantidadActual, cantidadARestar);
-            throw new IllegalArgumentException("Stock insuficiente en la orden para restar " + cantidadARestar + " unidades");
+            log.warn("⚠️ Stock insuficiente en la orden. producto={}, cantidadActual={}, intentoRestar={}",
+                    codigoProducto, cantidadActual, cantidadARestar);
+            throw new IllegalArgumentException("Stock insuficiente en la orden");
         }
 
         // 4) Calcular nueva cantidad
         long nuevaCantidad = cantidadActual - cantidadARestar;
 
-        // Preparar DTO de respuesta (por si eliminamos, devolvemos una representación con cantidad 0)
-        OrdenResponseDTO responseDto;
-
         if (nuevaCantidad <= 0) {
-            // Si queda 0 o menos → eliminar el item de la tabla de órdenes
-            // antes de eliminar, crear DTO que refleje la eliminación (cantidad = 0)
-            orden.setCantidad(0L);
-            orden.setFechaActualizacion(LocalDateTime.now());
-            responseDto = mapper.mapEntityToResponseDto(orden);
-
-            ordenRepository.delete(orden);
-            log.info("🗑️ Item de orden eliminado (codigo={}) tras restar {} unidades.", codigo, cantidadARestar);
-
-            // Opcional: aquí podrías notificar al micro de productos para incrementar stock
-            // try { productoClient.incrementarStock(codigo, cantidadARestar); } catch (Exception e) { log.warn(...); }
-
-            return responseDto;
+            // eliminar el detalle de la orden
+            orden.getDetalles().remove(detalle);
+            log.info("🗑️ Detalle eliminado: producto(codigo)={} tras restar {}", codigoProducto, cantidadARestar);
         } else {
-            // Actualizar cantidad y persistir
-            orden.setCantidad(nuevaCantidad);
-            orden.setFechaActualizacion(LocalDateTime.now());
-
-            OrdenEntity actualizado = ordenRepository.save(orden);
-            log.info("✅ Cantidad actualizada en orden: codigo={}, nuevaCantidad={}", codigo, nuevaCantidad);
-
-            // Opcional: notificar al micro de productos que se ha liberado stock (si aplica)
-            // try { productoClient.incrementarStock(codigo, cantidadARestar); } catch (Exception e) { log.warn(...); }
-
-            responseDto = mapper.mapEntityToResponseDto(actualizado);
-            return responseDto;
+            // actualizar el detalle
+            detalle.setCantidad(nuevaCantidad);
+            detalle.setFechaActualizacion(LocalDateTime.now());
+            log.info("✅ Cantidad actualizada en producto(codigo)={}, nuevaCantidad={}", codigoProducto, nuevaCantidad);
         }
+
+        orden.setFechaActualizacion(LocalDateTime.now());
+        OrdenEntity actualizado = ordenRepository.save(orden);
+
+        return mapper.mapEntityToResponseDto(actualizado);
     }
 
     @Transactional
     public OrdenResponseDTO cerrarOrdenPorCliente(Long identificacionCliente) {
+        log.info("📌 Cerrando orden del cliente: {}", identificacionCliente);
+
         OrdenEntity orden = ordenRepository
-                .findFirstByIdentificacionClienteAndEstado(identificacionCliente, "ABIERTA")
+                .findFirstByIdentificacionClienteAndEstadoOrden(identificacionCliente, "ABIERTA")
                 .orElseThrow(() -> new RuntimeException("No existe orden ABIERTA para este cliente"));
 
-        orden.setEstado("CERRADA");
+        orden.setEstadoOrden("CERRADA");
         orden.setFechaActualizacion(LocalDateTime.now());
 
         OrdenEntity guardado = ordenRepository.save(orden);
+        log.info("✅ Orden cerrada correctamente para cliente: {}", identificacionCliente);
+
         return mapper.mapEntityToResponseDto(guardado);
     }
 

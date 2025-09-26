@@ -5,6 +5,8 @@ import lombok.Getter;
 import lombok.Setter;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 
 @Setter
 @Getter
@@ -13,32 +15,26 @@ import java.time.LocalDateTime;
 public class OrdenEntity {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    @Column(name = "numero_orden", nullable = false, unique = true, length = 50)
+    private String numeroOrden; // (UUID)
 
-    @Column(nullable = false)
-    private Long codigo;
-
-    private String producto;
-    private String descripcion;
-    private Long cantidad;
-    private Long precio;
-
-    private String estado; // ABIERTA o CERRADA
-    private LocalDateTime fechaOrden;
+    private String estadoOrden; // ABIERTA o CERRADA
     private String numeroFactura;
 
-    // Relación con micro cliente
+    // Relación cliente, empleado y proveedor
     private Long identificacionCliente;
     private String nombreCliente;
-
-    // Relación con micro empleado
     private Long identificacionEmpleado;
     private String nombreEmpleado;
+    private Long identificacionProveedor;
+    private String nombreProveedor;
 
     @Column(name = "fecha_creacion", nullable = false, updatable = false)
     private LocalDateTime fechaCreacion;
 
     @Column(name = "fecha_actualizacion")
     private LocalDateTime fechaActualizacion;
+
+    @OneToMany(mappedBy = "orden", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<OrdenDetalleEntity> detalles = new ArrayList<>();
 }

@@ -26,28 +26,31 @@ public class OrdenController {
 
     @PostMapping("/register")
     public ResponseEntity<OrdenResponseDTO> crearOrdenDeVenta(@RequestBody OrdenRequestDTO ordenRequestDTO) {
-        log.info("📌 Iniciando petición para agregar Producto: {}", ordenRequestDTO.getProducto());
+        log.info("📌 Iniciando petición para crear/actualizar Orden de Venta para cliente: {}", ordenRequestDTO.getIdentificacionCliente());
 
         OrdenResponseDTO crearOrdenVentaResponse = ordenService.crearOrdenDeVenta(ordenRequestDTO);
 
-        log.info("📌 Finaliza petición para agregar Producto: {}", ordenRequestDTO.getProducto());
+        log.info("📌 Finaliza petición para crear/actualizar Orden de Venta para cliente: {}", ordenRequestDTO.getIdentificacionCliente());
 
         return ResponseEntity.ok(crearOrdenVentaResponse);
     }
 
-    @PutMapping("/restar/{codigo}")
-    public ResponseEntity<OrdenResponseDTO> restarCantidadProducto(@PathVariable("codigo") Long codigo, @RequestParam("cantidad") int cantidadARestar) {
+    @PutMapping("/restar/{numeroOrden}")
+    public ResponseEntity<OrdenResponseDTO> restarCantidadProducto(
+            @PathVariable("numeroOrden") String numeroOrden,
+            @RequestParam("codigo") Long codigoProducto,
+            @RequestParam("cantidad") int cantidadARestar) {
 
-        log.info("📌 Petición RESTAR en orden -> codigo: {}, cantidad: {}", codigo, cantidadARestar);
+        log.info("📌 Petición RESTAR en orden -> numeroOrden: {}, codigoProducto: {}, cantidad: {}", numeroOrden, codigoProducto, cantidadARestar);
 
-        OrdenResponseDTO ordenActualizada = ordenService.restarCantidadProducto(codigo, cantidadARestar);
+        OrdenResponseDTO ordenActualizada = ordenService.restarCantidadProducto(numeroOrden, codigoProducto, cantidadARestar);
 
         return ResponseEntity.ok(ordenActualizada);
     }
 
     @PatchMapping("/cliente/orden/cerrar/{identificacionCliente}")
     public ResponseEntity<OrdenResponseDTO> cerrarOrdenPorCliente(@PathVariable Long identificacionCliente) {
-        log.info("📌 Iniciando petición para cerrar cuenta: {}", identificacionCliente);
+        log.info("📌 Iniciando petición para cerrar cuenta del cliente: {}", identificacionCliente);
 
         OrdenResponseDTO dto = ordenService.cerrarOrdenPorCliente(identificacionCliente);
         return ResponseEntity.ok(dto);

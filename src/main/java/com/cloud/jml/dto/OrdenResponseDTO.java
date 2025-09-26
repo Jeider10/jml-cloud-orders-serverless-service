@@ -5,28 +5,27 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+import java.util.List;
+
 @Setter
 @Getter
 @NoArgsConstructor // Constructor sin argumentos
 @AllArgsConstructor // Constructor con todos los argumentos
 public class OrdenResponseDTO {
 
-    private Long codigo;
-    private String producto;
-    private String descripcion;
-    private Long cantidad;
-    private Long precio;
+    private String numeroOrden;
+    private String estadoOrden;
+    private String numeroFactura;
     private String fechaCreacion;
     private String fechaActualizacion;
 
-    // Estado y extras
-    private String estado;
-    private String fechaOrden;
-    private String numeroFactura;
-
-    // Relación cliente y empleado
+    // Relación cliente, empleado y proveedor
     private Long identificacionCliente;
     private String nombreCliente;
     private Long identificacionEmpleado;
     private String nombreEmpleado;
+    private Long identificacionProveedor;
+    private String nombreProveedor;
+
+    private List<OrdenDetalleResponseDTO> detalles;
 }

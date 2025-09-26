@@ -1,15 +1,17 @@
 package com.cloud.jml.utils;
 
-import com.cloud.jml.dto.OrdenRequestDTO;
-import com.cloud.jml.dto.OrdenResponseDTO;
+import com.cloud.jml.dto.*;
+import com.cloud.jml.model.OrdenDetalleEntity;
 import com.cloud.jml.model.OrdenEntity;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
 import java.time.LocalDateTime;
+import java.util.List;
+import java.util.UUID;
 
 @Slf4j
-@Component // 🔹 Anotación para indicar que es un componente de Spring
+@Component
 public class OrdenMapper {
 
     private final OrdenUtils ordenUtils;
@@ -18,52 +20,98 @@ public class OrdenMapper {
         this.ordenUtils = ordenUtils;
     }
 
-    // ------------------ 🔹 Métodos privados de Mapeos ------------------
+    // ------------------ 🔹 DTO → Entity ------------------
 
     public OrdenEntity mapRequestDtoToEntity(OrdenRequestDTO ordenRequestDTO) {
-        log.info("📌 Iniciando mapeo DTO a Entity para crear Producto");
+        log.info("📌 Iniciando mapeo DTO a Entity para crear Orden");
 
         OrdenEntity ordenEntity = new OrdenEntity();
 
-        ordenEntity.setCodigo(ordenRequestDTO.getCodigo());
-        ordenEntity.setProducto(ordenRequestDTO.getProducto());
-        ordenEntity.setDescripcion(ordenRequestDTO.getDescripcion());
-        ordenEntity.setCantidad(ordenRequestDTO.getCantidad());
-        ordenEntity.setPrecio(ordenRequestDTO.getPrecio());
+        // generar numeroOrden (UUID) aquí
+        String generated = UUID.randomUUID().toString();
+        ordenEntity.setNumeroOrden(generated);
+
         ordenEntity.setIdentificacionCliente(ordenRequestDTO.getIdentificacionCliente());
         ordenEntity.setNombreCliente(ordenRequestDTO.getNombreCliente());
         ordenEntity.setIdentificacionEmpleado(ordenRequestDTO.getIdentificacionEmpleado());
         ordenEntity.setNombreEmpleado(ordenRequestDTO.getNombreEmpleado());
+        ordenEntity.setIdentificacionProveedor(ordenRequestDTO.getIdentificacionProveedor());
+        ordenEntity.setNombreProveedor(ordenRequestDTO.getNombreProveedor());
         ordenEntity.setFechaCreacion(LocalDateTime.now());
 
-        log.info("📌 Finalizando mapeo DTO a Entity para agregar Producto");
+        // 🔹 Mapear lista de detalles
+        if (ordenRequestDTO.getDetalles() != null) {
+            List<OrdenDetalleEntity> detalles = ordenRequestDTO.getDetalles().stream()
+                    .map(this::mapDetalleRequestToEntity)
+                    .toList();
+            detalles.forEach(d -> {
+                d.setOrden(ordenEntity);
+                d.setFechaCreacion(LocalDateTime.now());
+            });
+            ordenEntity.setDetalles(detalles);
+        }
 
+        log.info("📌 Finalizando mapeo DTO a Entity para crear Orden (numeroOrden={})", generated);
         return ordenEntity;
     }
 
+    public OrdenDetalleEntity mapDetalleRequestToEntity(OrdenDetalleRequestDTO detalleDTO) {
+        OrdenDetalleEntity detalleEntity = new OrdenDetalleEntity();
+        detalleEntity.setCodigo(detalleDTO.getCodigo());
+        detalleEntity.setProducto(detalleDTO.getProducto());
+        detalleEntity.setDescripcion(detalleDTO.getDescripcion());
+        detalleEntity.setCantidad(detalleDTO.getCantidad());
+        detalleEntity.setPrecio(detalleDTO.getPrecio());
+        // fechaCreacion se asigna por quien llame (service/mapper principal)
+        return detalleEntity;
+    }
+
+    // ------------------ 🔹 Entity → DTO ------------------
+
     public OrdenResponseDTO mapEntityToResponseDto(OrdenEntity ordenEntity) {
-        log.info("📌 Iniciando mapeo Entity a DTO para crear Producto");
+        log.info("📌 Iniciando mapeo Entity a DTO para devolver Orden");
 
         OrdenResponseDTO ordenResponseDTO = new OrdenResponseDTO();
-
-        ordenResponseDTO.setCodigo(ordenEntity.getCodigo());
-        ordenResponseDTO.setProducto(ordenEntity.getProducto());
-        ordenResponseDTO.setDescripcion(ordenEntity.getDescripcion());
-        ordenResponseDTO.setCantidad(ordenEntity.getCantidad());
-        ordenResponseDTO.setPrecio(ordenEntity.getPrecio());
-
-        ordenResponseDTO.setEstado(ordenEntity.getEstado());
+        ordenResponseDTO.setNumeroOrden(ordenEntity.getNumeroOrden());
+        ordenResponseDTO.setEstadoOrden(ordenEntity.getEstadoOrden());
         ordenResponseDTO.setNumeroFactura(ordenEntity.getNumeroFactura());
         ordenResponseDTO.setIdentificacionCliente(ordenEntity.getIdentificacionCliente());
         ordenResponseDTO.setNombreCliente(ordenEntity.getNombreCliente());
         ordenResponseDTO.setIdentificacionEmpleado(ordenEntity.getIdentificacionEmpleado());
         ordenResponseDTO.setNombreEmpleado(ordenEntity.getNombreEmpleado());
+        ordenResponseDTO.setIdentificacionProveedor(ordenEntity.getIdentificacionProveedor());
+        ordenResponseDTO.setNombreProveedor(ordenEntity.getNombreProveedor());
 
-        // 🔹 Formatear fechas
+        // 🔹 Mapear lista de detalles
+        if (ordenEntity.getDetalles() != null) {
+            List<OrdenDetalleResponseDTO> detalles = ordenEntity.getDetalles().stream()
+                    .map(this::mapDetalleEntityToResponse)
+                    .toList();
+            ordenResponseDTO.setDetalles(detalles);
+        }
+
+        // 🔹 Fechas
         ordenUtils.asignarFechasFormateadas(ordenEntity, ordenResponseDTO);
 
-        log.info("📌 Finalizando mapeo Entity a DTO para crear Producto");
-
+        log.info("📌 Finalizando mapeo Entity a DTO para devolver Orden");
         return ordenResponseDTO;
+    }
+
+    public OrdenDetalleResponseDTO mapDetalleEntityToResponse(OrdenDetalleEntity detalleEntity) {
+        OrdenDetalleResponseDTO responseDTO = new OrdenDetalleResponseDTO();
+        responseDTO.setCodigo(detalleEntity.getCodigo());
+        responseDTO.setProducto(detalleEntity.getProducto());
+        responseDTO.setDescripcion(detalleEntity.getDescripcion());
+        responseDTO.setCantidad(detalleEntity.getCantidad());
+        responseDTO.setPrecio(detalleEntity.getPrecio());
+
+        if (detalleEntity.getFechaCreacion() != null) {
+            responseDTO.setFechaCreacion(ordenUtils.formatearFecha(detalleEntity.getFechaCreacion()));
+        }
+        if (detalleEntity.getFechaActualizacion() != null) {
+            responseDTO.setFechaActualizacion(ordenUtils.formatearFecha(detalleEntity.getFechaActualizacion()));
+        }
+
+        return responseDTO;
     }
 }

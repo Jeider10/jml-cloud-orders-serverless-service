@@ -5,32 +5,10 @@ import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.Optional;
 
-public interface OrdenRepository extends JpaRepository<OrdenEntity, Long> {
-    Optional<OrdenEntity> findByCodigo(Long codigo);
+public interface OrdenRepository extends JpaRepository<OrdenEntity, String> {
+    Optional<OrdenEntity> findByNumeroOrden(String numeroOrden);
 
-    Optional<OrdenEntity> findFirstByCodigoOrderByFechaCreacionDesc(Long codigo);
+    Optional<OrdenEntity> findByNumeroOrdenAndEstadoOrden(String numeroOrden, String estadoOrden);
 
-    Optional<OrdenEntity> findByCodigoAndEstado(Long codigo, String estado);
-
-    Optional<OrdenEntity> findFirstByIdentificacionClienteAndEstado(Long identificacionCliente, String estado);
-
-//    List<OrdenEntity> findByNombre(String nombre);
-//
-//    List<OrdenEntity> findByNombreContainingIgnoreCase(String nombre);
-//
-//    List<OrdenEntity> findByDescripcion(String descripcion);
-//
-//    List<OrdenEntity> findByDescripcionContainingIgnoreCase(String descripcion);
-//
-//    List<OrdenEntity> findByCantidad(Long cantidad);
-//
-//    List<OrdenEntity> findByPrecio(Long precio);
-//
-//    List<OrdenEntity> findByProveedorId(Long proveedorId);
-//
-//    List<OrdenEntity> findByProveedorName(String proveedorName);
-//
-//    List<OrdenEntity> findByProveedorNameContainingIgnoreCase(String proveedorName);
-//
-//    List<OrdenEntity> findByFechaCreacion(LocalDateTime fechaCreacion);
+    Optional<OrdenEntity> findFirstByIdentificacionClienteAndEstadoOrden(Long identificacionCliente, String estadoOrden);
 }
