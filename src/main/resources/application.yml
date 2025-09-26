@@ -1,0 +1,23 @@
+server:
+  port: 8085
+
+spring:
+  datasource:
+    url: jdbc:mysql://localhost:3306/application_table_db
+    username: root
+    password:
+    driver-class-name: com.mysql.cj.jdbc.Driver
+  application:
+    name: jml-cloud-orders-serverless-service
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: true
+  security:
+    user:
+      name: admin
+      password: admin
+
+jwt:
+  secret: gOOKoiLpQ/XDAAo9I85L/2Bh3Y9KWvDFyRf7vqqGP38=
+  expiration: 3600000  # 1 hora en milisegundos
