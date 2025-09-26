@@ -83,5 +83,15 @@ public class OrdenUtils {
         } else {
             ordenResponseDTO.setFechaActualizacion(null);
         }
+
+        if (ordenEntity.getFechaOrden() != null) {
+            String fechaOrden = formatearFecha(ordenEntity.getFechaOrden());
+            log.info("📌 Fecha de orden formateada: {}", fechaOrden);
+
+//            ordenResponseDTO.setFechaOrden(ordenEntity.getFechaOrden().toString()); // yyyy-MM-dd
+            ordenResponseDTO.setFechaOrden(fechaOrden);
+        } else {
+            ordenResponseDTO.setFechaOrden(null);
+        }
     }
 }

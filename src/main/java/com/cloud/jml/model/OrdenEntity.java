@@ -24,6 +24,18 @@ public class OrdenEntity {
     private Long cantidad;
     private Long precio;
 
+    private String estado; // ABIERTA o CERRADA
+    private LocalDateTime fechaOrden;
+    private String numeroFactura;
+
+    // Relación con micro cliente
+    private Long identificacionCliente;
+    private String nombreCliente;
+
+    // Relación con micro empleado
+    private Long identificacionEmpleado;
+    private String nombreEmpleado;
+
     @Column(name = "fecha_creacion", nullable = false, updatable = false)
     private LocalDateTime fechaCreacion;
 

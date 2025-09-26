@@ -12,6 +12,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
@@ -34,49 +35,50 @@ public class OrdenService {
 
     @Transactional
     public OrdenResponseDTO crearOrdenDeVenta(OrdenRequestDTO ordenRequestDTO) {
-        log.info("📌 Inicio de creación de agregar Producto: {}", ordenRequestDTO.getProducto());
+        log.info("📌 Creando orden de venta para producto: {}", ordenRequestDTO.getProducto());
 
-        // 🔹 Verificar si ya existe por código
-        Optional<OrdenEntity> existente = ordenRepository.findByCodigo(ordenRequestDTO.getCodigo());
+        Optional<OrdenEntity> existente =
+                ordenRepository.findByCodigoAndEstado(ordenRequestDTO.getCodigo(), "ABIERTA");
 
         OrdenEntity ordenEntity;
-
         if (existente.isPresent()) {
-            // ✅ Si ya existe → actualizar cantidad y precio total
+            // Actualizar orden existente
             ordenEntity = existente.get();
+            log.warn("⚠️ Ya existe una orden ABIERTA para el producto {}. Acumulando cantidad.", ordenRequestDTO.getCodigo());
 
-            log.warn("⚠️ El producto con código {} ya existe en ordenes_ventas. Se actualizará la cantidad.",
-                    ordenRequestDTO.getCodigo());
-
-            // Sumar cantidades
-            Long nuevaCantidad = ordenEntity.getCantidad() + ordenRequestDTO.getCantidad();
-
-            ordenEntity.setCantidad(nuevaCantidad);
-
-            // Actualizar precio (opcional: depende de si manejas precio unitario o total)
+            ordenEntity.setCantidad(ordenEntity.getCantidad() + ordenRequestDTO.getCantidad());
             ordenEntity.setPrecio(ordenRequestDTO.getPrecio());
-
-            // Actualizar descripción o nombre si cambia
             ordenEntity.setProducto(ordenRequestDTO.getProducto());
             ordenEntity.setDescripcion(ordenRequestDTO.getDescripcion());
-
-            // Registrar fecha de actualización
+            ordenEntity.setIdentificacionCliente(ordenRequestDTO.getIdentificacionCliente());
+            ordenEntity.setNombreCliente(ordenRequestDTO.getNombreCliente());
+            ordenEntity.setIdentificacionEmpleado(ordenRequestDTO.getIdentificacionEmpleado());
+            ordenEntity.setNombreEmpleado(ordenRequestDTO.getNombreEmpleado());
             ordenEntity.setFechaActualizacion(LocalDateTime.now());
+
         } else {
-            // 🚀 Si no existe → crear una nueva orden
+            // Crear nueva orden
             ordenEntity = mapper.mapRequestDtoToEntity(ordenRequestDTO);
+            ordenEntity.setEstado("ABIERTA");
+            ordenEntity.setFechaOrden(LocalDateTime.now());
         }
 
-        // 🔹 Guardar en la base de datos (insert o update)
         OrdenEntity guardado = ordenRepository.save(ordenEntity);
-        log.info("✅ Orden de Venta procesada correctamente para producto: {}", guardado.getProducto());
+        log.info("✅ Orden procesada correctamente. ID: {}", guardado.getId());
 
-        // 🔹 Convertir a DTO de respuesta
-        OrdenResponseDTO ordenResponseDTO = mapper.mapEntityToResponseDto(guardado);
+        return mapper.mapEntityToResponseDto(guardado);
+    }
 
-        log.info("📌 Finaliza creación/actualización de Orden de Venta para producto: {}", ordenResponseDTO.getProducto());
+    @Transactional
+    public OrdenResponseDTO cerrarOrden(Long id) {
+        OrdenEntity orden = ordenRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Orden no encontrada"));
 
-        return ordenResponseDTO;
+        orden.setEstado("CERRADA");
+        orden.setFechaActualizacion(LocalDateTime.now());
+
+        OrdenEntity guardado = ordenRepository.save(orden);
+        return mapper.mapEntityToResponseDto(guardado);
     }
 
     @Transactional(readOnly = true)

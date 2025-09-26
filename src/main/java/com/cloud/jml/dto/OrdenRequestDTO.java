@@ -16,4 +16,10 @@ public class OrdenRequestDTO {
     private String descripcion;
     private Long cantidad;
     private Long precio;
+
+    // Relación cliente y empleado
+    private Long identificacionCliente;
+    private String nombreCliente;
+    private Long identificacionEmpleado;
+    private String nombreEmpleado;
 }

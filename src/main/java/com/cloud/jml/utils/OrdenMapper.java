@@ -30,6 +30,10 @@ public class OrdenMapper {
         ordenEntity.setDescripcion(ordenRequestDTO.getDescripcion());
         ordenEntity.setCantidad(ordenRequestDTO.getCantidad());
         ordenEntity.setPrecio(ordenRequestDTO.getPrecio());
+        ordenEntity.setIdentificacionCliente(ordenRequestDTO.getIdentificacionCliente());
+        ordenEntity.setNombreCliente(ordenRequestDTO.getNombreCliente());
+        ordenEntity.setIdentificacionEmpleado(ordenRequestDTO.getIdentificacionEmpleado());
+        ordenEntity.setNombreEmpleado(ordenRequestDTO.getNombreEmpleado());
         ordenEntity.setFechaCreacion(LocalDateTime.now());
 
         log.info("📌 Finalizando mapeo DTO a Entity para agregar Producto");
@@ -47,6 +51,17 @@ public class OrdenMapper {
         ordenResponseDTO.setDescripcion(ordenEntity.getDescripcion());
         ordenResponseDTO.setCantidad(ordenEntity.getCantidad());
         ordenResponseDTO.setPrecio(ordenEntity.getPrecio());
+
+        ordenResponseDTO.setEstado(ordenEntity.getEstado());
+        ordenResponseDTO.setNumeroFactura(ordenEntity.getNumeroFactura());
+        ordenResponseDTO.setIdentificacionCliente(ordenEntity.getIdentificacionCliente());
+        ordenResponseDTO.setNombreCliente(ordenEntity.getNombreCliente());
+        ordenResponseDTO.setIdentificacionEmpleado(ordenEntity.getIdentificacionEmpleado());
+        ordenResponseDTO.setNombreEmpleado(ordenEntity.getNombreEmpleado());
+
+        if (ordenEntity.getFechaOrden() != null) {
+            ordenResponseDTO.setFechaOrden(ordenEntity.getFechaOrden().toString()); // yyyy-MM-dd
+        }
 
         // 🔹 Formatear fechas
         ordenUtils.asignarFechasFormateadas(ordenEntity, ordenResponseDTO);

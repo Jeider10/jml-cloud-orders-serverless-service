@@ -35,6 +35,12 @@ public class OrdenController {
         return ResponseEntity.ok(crearOrdenVentaResponse);
     }
 
+    @PatchMapping("/ordenes/{id}/cerrar")
+    public ResponseEntity<OrdenResponseDTO> cerrarOrden(@PathVariable Long id) {
+        OrdenResponseDTO dto = ordenService.cerrarOrden(id);
+        return ResponseEntity.ok(dto);
+    }
+
     @GetMapping("/listar-productos")
     public ResponseEntity<List<OrdenResponseDTO>> listarProductos() {
         log.info("📌 Iniciando petición para listar todos los Productos");

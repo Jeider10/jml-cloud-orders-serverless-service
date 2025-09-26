@@ -18,4 +18,15 @@ public class OrdenResponseDTO {
     private Long precio;
     private String fechaCreacion;
     private String fechaActualizacion;
+
+    // Estado y extras
+    private String estado;
+    private String fechaOrden;
+    private String numeroFactura;
+
+    // Relación cliente y empleado
+    private Long identificacionCliente;
+    private String nombreCliente;
+    private Long identificacionEmpleado;
+    private String nombreEmpleado;
 }
