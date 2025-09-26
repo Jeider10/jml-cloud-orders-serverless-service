@@ -39,17 +39,17 @@ public class OrdenUtils {
         }
     }
 
-    public void actualizarDatosProducto(OrdenRequestDTO ordenRequestDTO, OrdenEntity ordenEntity) {
-
-        ordenEntity.setNombre(ordenRequestDTO.getNombre());
-        ordenEntity.setDescripcion(ordenRequestDTO.getDescripcion());
-        ordenEntity.setCantidad(ordenRequestDTO.getCantidad());
-        ordenEntity.setPrecio(ordenRequestDTO.getPrecio());
-        ordenEntity.setProveedorId(ordenRequestDTO.getProveedorId());
-        ordenEntity.setProveedorName(ordenRequestDTO.getProveedorName());
-
-        ordenEntity.setFechaActualizacion(LocalDateTime.now());
-    }
+//    public void actualizarDatosProducto(OrdenRequestDTO ordenRequestDTO, OrdenEntity ordenEntity) {
+//
+//        ordenEntity.setNombre(ordenRequestDTO.getNombre());
+//        ordenEntity.setDescripcion(ordenRequestDTO.getDescripcion());
+//        ordenEntity.setCantidad(ordenRequestDTO.getCantidad());
+//        ordenEntity.setPrecio(ordenRequestDTO.getPrecio());
+//        ordenEntity.setProveedorId(ordenRequestDTO.getProveedorId());
+//        ordenEntity.setProveedorName(ordenRequestDTO.getProveedorName());
+//
+//        ordenEntity.setFechaActualizacion(LocalDateTime.now());
+//    }
 
     public String formatearFecha(LocalDateTime fecha) {
         String fechaFormateada = fecha.format(FORMATTER).toLowerCase();

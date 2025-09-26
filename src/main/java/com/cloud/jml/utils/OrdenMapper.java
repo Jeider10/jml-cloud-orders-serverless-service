@@ -26,15 +26,13 @@ public class OrdenMapper {
         OrdenEntity ordenEntity = new OrdenEntity();
 
         ordenEntity.setCodigo(ordenRequestDTO.getCodigo());
-        ordenEntity.setNombre(ordenRequestDTO.getNombre());
+        ordenEntity.setProducto(ordenRequestDTO.getProducto());
         ordenEntity.setDescripcion(ordenRequestDTO.getDescripcion());
         ordenEntity.setCantidad(ordenRequestDTO.getCantidad());
         ordenEntity.setPrecio(ordenRequestDTO.getPrecio());
-        ordenEntity.setProveedorId(ordenRequestDTO.getProveedorId());
-        ordenEntity.setProveedorName(ordenRequestDTO.getProveedorName());
         ordenEntity.setFechaCreacion(LocalDateTime.now());
 
-        log.info("📌 Finalizando mapeo DTO a Entity para crear Producto");
+        log.info("📌 Finalizando mapeo DTO a Entity para agregar Producto");
 
         return ordenEntity;
     }
@@ -45,12 +43,10 @@ public class OrdenMapper {
         OrdenResponseDTO ordenResponseDTO = new OrdenResponseDTO();
 
         ordenResponseDTO.setCodigo(ordenEntity.getCodigo());
-        ordenResponseDTO.setNombre(ordenEntity.getNombre());
+        ordenResponseDTO.setProducto(ordenEntity.getProducto());
         ordenResponseDTO.setDescripcion(ordenEntity.getDescripcion());
         ordenResponseDTO.setCantidad(ordenEntity.getCantidad());
         ordenResponseDTO.setPrecio(ordenEntity.getPrecio());
-        ordenResponseDTO.setProveedorId(ordenEntity.getProveedorId());
-        ordenResponseDTO.setProveedorName(ordenEntity.getProveedorName());
 
         // 🔹 Formatear fechas
         ordenUtils.asignarFechasFormateadas(ordenEntity, ordenResponseDTO);

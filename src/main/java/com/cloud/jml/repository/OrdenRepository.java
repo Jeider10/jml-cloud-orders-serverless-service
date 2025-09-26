@@ -10,23 +10,23 @@ import java.util.Optional;
 public interface OrdenRepository extends JpaRepository<OrdenEntity, Long> {
     Optional<OrdenEntity> findByCodigo(Long codigo);
 
-    List<OrdenEntity> findByNombre(String nombre);
-
-    List<OrdenEntity> findByNombreContainingIgnoreCase(String nombre);
-
-    List<OrdenEntity> findByDescripcion(String descripcion);
-
-    List<OrdenEntity> findByDescripcionContainingIgnoreCase(String descripcion);
-
-    List<OrdenEntity> findByCantidad(Long cantidad);
-
-    List<OrdenEntity> findByPrecio(Long precio);
-
-    List<OrdenEntity> findByProveedorId(Long proveedorId);
-
-    List<OrdenEntity> findByProveedorName(String proveedorName);
-
-    List<OrdenEntity> findByProveedorNameContainingIgnoreCase(String proveedorName);
-
-    List<OrdenEntity> findByFechaCreacion(LocalDateTime fechaCreacion);
+//    List<OrdenEntity> findByNombre(String nombre);
+//
+//    List<OrdenEntity> findByNombreContainingIgnoreCase(String nombre);
+//
+//    List<OrdenEntity> findByDescripcion(String descripcion);
+//
+//    List<OrdenEntity> findByDescripcionContainingIgnoreCase(String descripcion);
+//
+//    List<OrdenEntity> findByCantidad(Long cantidad);
+//
+//    List<OrdenEntity> findByPrecio(Long precio);
+//
+//    List<OrdenEntity> findByProveedorId(Long proveedorId);
+//
+//    List<OrdenEntity> findByProveedorName(String proveedorName);
+//
+//    List<OrdenEntity> findByProveedorNameContainingIgnoreCase(String proveedorName);
+//
+//    List<OrdenEntity> findByFechaCreacion(LocalDateTime fechaCreacion);
 }
