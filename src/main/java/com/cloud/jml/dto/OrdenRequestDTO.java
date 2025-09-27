@@ -9,11 +9,10 @@ import java.util.List;
 
 @Setter
 @Getter
-@NoArgsConstructor // Constructor sin argumentos
-@AllArgsConstructor // Constructor con todos los argumentoss
+@NoArgsConstructor
+@AllArgsConstructor
 public class OrdenRequestDTO {
 
-    // Relación cliente, empleado y proveedor
     private Long identificacionCliente;
     private String nombreCliente;
     private Long identificacionEmpleado;

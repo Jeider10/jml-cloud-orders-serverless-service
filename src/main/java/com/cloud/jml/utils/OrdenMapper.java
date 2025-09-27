@@ -21,13 +21,12 @@ public class OrdenMapper {
     }
 
     // ------------------ 🔹 DTO → Entity ------------------
-
     public OrdenEntity mapRequestDtoToEntity(OrdenRequestDTO ordenRequestDTO) {
         log.info("📌 Iniciando mapeo DTO a Entity para crear Orden");
 
         OrdenEntity ordenEntity = new OrdenEntity();
 
-        // generar numeroOrden (UUID) aquí
+        // generar numeroOrden (UUID)
         String generated = UUID.randomUUID().toString();
         ordenEntity.setNumeroOrden(generated);
 
@@ -39,15 +38,15 @@ public class OrdenMapper {
         ordenEntity.setNombreProveedor(ordenRequestDTO.getNombreProveedor());
         ordenEntity.setFechaCreacion(LocalDateTime.now());
 
-        // 🔹 Mapear lista de detalles
         if (ordenRequestDTO.getDetalles() != null) {
             List<OrdenDetalleEntity> detalles = ordenRequestDTO.getDetalles().stream()
                     .map(this::mapDetalleRequestToEntity)
-                    .toList();
-            detalles.forEach(d -> {
-                d.setOrden(ordenEntity);
-                d.setFechaCreacion(LocalDateTime.now());
-            });
+                    .map(d -> {
+                        d.setFechaCreacion(LocalDateTime.now());
+                        return d;
+                    })
+                    .toList(); // nueva lista independiente para cada orden
+            detalles.forEach(d -> d.setOrden(ordenEntity));
             ordenEntity.setDetalles(detalles);
         }
 
@@ -62,12 +61,10 @@ public class OrdenMapper {
         detalleEntity.setDescripcion(detalleDTO.getDescripcion());
         detalleEntity.setCantidad(detalleDTO.getCantidad());
         detalleEntity.setPrecio(detalleDTO.getPrecio());
-        // fechaCreacion se asigna por quien llame (service/mapper principal)
         return detalleEntity;
     }
 
     // ------------------ 🔹 Entity → DTO ------------------
-
     public OrdenResponseDTO mapEntityToResponseDto(OrdenEntity ordenEntity) {
         log.info("📌 Iniciando mapeo Entity a DTO para devolver Orden");
 
@@ -90,7 +87,7 @@ public class OrdenMapper {
             ordenResponseDTO.setDetalles(detalles);
         }
 
-        // 🔹 Fechas
+        // Fechas formateadas
         ordenUtils.asignarFechasFormateadas(ordenEntity, ordenResponseDTO);
 
         log.info("📌 Finalizando mapeo Entity a DTO para devolver Orden");
