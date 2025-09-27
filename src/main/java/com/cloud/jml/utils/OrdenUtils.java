@@ -25,22 +25,38 @@ public class OrdenUtils {
     }
 
     public String formatearFecha(LocalDateTime fecha) {
-        if (fecha == null) return null;
+        if (fecha == null) {
+            return null;
+        }
 
         String fechaFormateada = fecha.format(FORMATTER).toLowerCase();
-        fechaFormateada = fechaFormateada.replace("a. m.", "a.m.").replace("p. m.", "p.m.");
+        log.info("📌 Fecha formateada originalmente: {}", fechaFormateada);
+
+        // Reemplazar y reasignar el valor "a. m." → "a.m." y "p. m." → "p.m."
+        fechaFormateada = fechaFormateada
+                .replace("a. m.", "a.m.")
+                .replace("p. m.", "p.m.");
+
+        log.info("📌 Fecha formateada final: {}", fechaFormateada);
+
         return fechaFormateada;
     }
 
     public void asignarFechasFormateadas(OrdenEntity ordenEntity, OrdenResponseDTO ordenResponseDTO) {
         if (ordenEntity.getFechaCreacion() != null) {
-            ordenResponseDTO.setFechaCreacion(formatearFecha(ordenEntity.getFechaCreacion()));
+            String fechaCreacion = formatearFecha(ordenEntity.getFechaCreacion());
+            log.info("📌 Fecha creación formateada: {}", fechaCreacion);
+
+            ordenResponseDTO.setFechaCreacion(fechaCreacion);
         } else {
             ordenResponseDTO.setFechaCreacion(null);
         }
 
         if (ordenEntity.getFechaActualizacion() != null) {
-            ordenResponseDTO.setFechaActualizacion(formatearFecha(ordenEntity.getFechaActualizacion()));
+            String fechaActualizacion = formatearFecha(ordenEntity.getFechaActualizacion());
+            log.info("📌 Fecha actualización formateada: {}", fechaActualizacion);
+
+            ordenResponseDTO.setFechaActualizacion(fechaActualizacion);
         } else {
             ordenResponseDTO.setFechaActualizacion(null);
         }

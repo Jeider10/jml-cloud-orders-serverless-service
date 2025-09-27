@@ -21,6 +21,7 @@ public class OrdenMapper {
     }
 
     // ------------------ 🔹 DTO → Entity ------------------
+
     public OrdenEntity mapRequestDtoToEntity(OrdenRequestDTO ordenRequestDTO) {
         log.info("📌 Iniciando mapeo DTO a Entity para crear Orden");
 
@@ -38,13 +39,11 @@ public class OrdenMapper {
         ordenEntity.setNombreProveedor(ordenRequestDTO.getNombreProveedor());
         ordenEntity.setFechaCreacion(LocalDateTime.now());
 
+        // 🔹 Mapear lista de detalles
         if (ordenRequestDTO.getDetalles() != null) {
             List<OrdenDetalleEntity> detalles = ordenRequestDTO.getDetalles().stream()
                     .map(this::mapDetalleRequestToEntity)
-                    .map(d -> {
-                        d.setFechaCreacion(LocalDateTime.now());
-                        return d;
-                    })
+                    .peek(d -> d.setFechaCreacion(LocalDateTime.now()))
                     .toList(); // nueva lista independiente para cada orden
             detalles.forEach(d -> d.setOrden(ordenEntity));
             ordenEntity.setDetalles(detalles);
@@ -65,6 +64,7 @@ public class OrdenMapper {
     }
 
     // ------------------ 🔹 Entity → DTO ------------------
+
     public OrdenResponseDTO mapEntityToResponseDto(OrdenEntity ordenEntity) {
         log.info("📌 Iniciando mapeo Entity a DTO para devolver Orden");
 

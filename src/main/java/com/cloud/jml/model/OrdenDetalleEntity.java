@@ -18,7 +18,6 @@ public class OrdenDetalleEntity {
 
     // código del producto (identificador dentro del catálogo)
     private Long codigo;
-
     private String producto;
     private String descripcion;
     private Long cantidad;

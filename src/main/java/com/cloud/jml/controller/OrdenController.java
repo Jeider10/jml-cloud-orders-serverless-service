@@ -24,9 +24,12 @@ public class OrdenController {
     @PostMapping("/register")
     public ResponseEntity<OrdenResponseDTO> crearOrdenDeVenta(@RequestBody OrdenRequestDTO ordenRequestDTO) {
         log.info("📌 Iniciando petición para crear/actualizar Orden de Venta para cliente: {}", ordenRequestDTO.getIdentificacionCliente());
-        OrdenResponseDTO response = ordenService.crearOrdenDeVenta(ordenRequestDTO);
+
+        OrdenResponseDTO crearOrdenVentaResponse = ordenService.crearOrdenDeVenta(ordenRequestDTO);
+
         log.info("📌 Finaliza petición para crear/actualizar Orden de Venta para cliente: {}", ordenRequestDTO.getIdentificacionCliente());
-        return ResponseEntity.ok(response);
+
+        return ResponseEntity.ok(crearOrdenVentaResponse);
     }
 
     @PutMapping("/restar/{numeroOrden}")
@@ -36,22 +39,33 @@ public class OrdenController {
             @RequestParam("cantidad") int cantidadARestar) {
 
         log.info("📌 Petición RESTAR en orden -> numeroOrden: {}, codigoProducto: {}, cantidad: {}", numeroOrden, codigoProducto, cantidadARestar);
+
         OrdenResponseDTO ordenActualizada = ordenService.restarCantidadProducto(numeroOrden, codigoProducto, cantidadARestar);
+
+        log.info("📌 Finaliza petición para restar/eliminar producto de venta para cliente: {}", cantidadARestar);
+
         return ResponseEntity.ok(ordenActualizada);
     }
 
     @PatchMapping("/cliente/orden/cerrar/{identificacionCliente}")
     public ResponseEntity<OrdenResponseDTO> cerrarOrdenPorCliente(@PathVariable Long identificacionCliente) {
         log.info("📌 Iniciando petición para cerrar cuenta del cliente: {}", identificacionCliente);
+
         OrdenResponseDTO dto = ordenService.cerrarOrdenPorCliente(identificacionCliente);
+
+        log.info("📌 Finaliza petición para cerrar venta para cliente con identificacion: {}", identificacionCliente);
+
         return ResponseEntity.ok(dto);
     }
 
     @GetMapping("/list/estado")
-    public ResponseEntity<List<OrdenResponseDTO>> listarOrdenesPorEstado(
-            @RequestParam("estado") String estadoOrden) {
+    public ResponseEntity<List<OrdenResponseDTO>> listarOrdenesPorEstado(@RequestParam("estado") String estadoOrden) {
+        log.info("📌 Iniciando petición para listar ordenes por estado: {}", estadoOrden);
 
         List<OrdenResponseDTO> ordenes = ordenService.listarOrdenesPorEstado(estadoOrden);
+
+        log.info("📌 Finaliza petición para listar ordenes por estado: {}", estadoOrden);
+
         return ResponseEntity.ok(ordenes);
     }
 
@@ -60,7 +74,12 @@ public class OrdenController {
             @RequestParam("cliente") Long identificacionCliente,
             @RequestParam("estado") String estadoOrden) {
 
+        log.info("📌 Iniciando petición para listar ordenes por cliente: {}, y estado: {}", identificacionCliente, estadoOrden);
+
         List<OrdenResponseDTO> ordenes = ordenService.listarOrdenesPorClienteYEstado(identificacionCliente, estadoOrden);
+
+        log.info("📌 Finaliza petición para listar ordenes por cliente: {}, y estado: {}", identificacionCliente, estadoOrden);
+
         return ResponseEntity.ok(ordenes);
     }
 }

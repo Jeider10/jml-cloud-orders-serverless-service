@@ -16,18 +16,18 @@ public class OrdenEntity {
 
     @Id
     @Column(name = "numero_orden", nullable = false, unique = true, length = 50)
-    private String numeroOrden; // (UUID)
+    private String numeroOrden;
 
-    private String estadoOrden; // ABIERTA o CERRADA
+    private String estadoOrden;
     private String numeroFactura;
 
-    // Relación cliente, empleado y proveedor
     private Long identificacionCliente;
     private String nombreCliente;
     private Long identificacionEmpleado;
     private String nombreEmpleado;
     private Long identificacionProveedor;
     private String nombreProveedor;
+    private Long totalCompra;
 
     @Column(name = "fecha_creacion", nullable = false, updatable = false)
     private LocalDateTime fechaCreacion;
