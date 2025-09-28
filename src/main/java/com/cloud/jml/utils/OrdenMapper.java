@@ -78,6 +78,7 @@ public class OrdenMapper {
         ordenResponseDTO.setNombreEmpleado(ordenEntity.getNombreEmpleado());
         ordenResponseDTO.setIdentificacionProveedor(ordenEntity.getIdentificacionProveedor());
         ordenResponseDTO.setNombreProveedor(ordenEntity.getNombreProveedor());
+        ordenResponseDTO.setTotalCompra(ordenEntity.getTotalCompra());
 
         // 🔹 Mapear lista de detalles
         if (ordenEntity.getDetalles() != null) {

@@ -82,4 +82,15 @@ public class OrdenController {
 
         return ResponseEntity.ok(ordenes);
     }
+
+    @GetMapping("/list/all")
+    public ResponseEntity<List<OrdenResponseDTO>> listarTodasLasOrdenes() {
+        log.info("📌 Iniciando petición para listar TODAS las órdenes de venta");
+
+        List<OrdenResponseDTO> ordenes = ordenService.listarTodasLasOrdenes();
+
+        log.info("📌 Finaliza petición para listar TODAS las órdenes. Total encontradas: {}", ordenes.size());
+
+        return ResponseEntity.ok(ordenes);
+    }
 }

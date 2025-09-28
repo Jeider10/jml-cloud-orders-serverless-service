@@ -18,6 +18,7 @@ public class OrdenResponseDTO {
     private String numeroFactura;
     private String fechaCreacion;
     private String fechaActualizacion;
+    private Long totalCompra;
 
     // Relación cliente, empleado y proveedor
     private Long identificacionCliente;

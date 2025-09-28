@@ -67,6 +67,7 @@ public class OrdenService {
             detalleEntity.setFechaCreacion(LocalDateTime.now());
             ordenEntity.getDetalles().add(detalleEntity);
         }
+
         ordenEntity.setIdentificacionCliente(requestDTO.getIdentificacionCliente());
         ordenEntity.setNombreCliente(requestDTO.getNombreCliente());
         ordenEntity.setIdentificacionEmpleado(requestDTO.getIdentificacionEmpleado());
@@ -74,6 +75,9 @@ public class OrdenService {
         ordenEntity.setIdentificacionProveedor(requestDTO.getIdentificacionProveedor());
         ordenEntity.setNombreProveedor(requestDTO.getNombreProveedor());
         ordenEntity.setFechaActualizacion(LocalDateTime.now());
+
+        // 🔹 Recalcular total después de agregar nuevos detalles
+        recalcularTotalCompra(ordenEntity);
     }
 
     private OrdenEntity crearNuevaOrden(OrdenRequestDTO requestDTO) {
@@ -93,6 +97,9 @@ public class OrdenService {
             d.setOrden(ordenEntity);
             d.setFechaCreacion(LocalDateTime.now());
         }
+
+        // 🔹 Calcular total inicial
+        recalcularTotalCompra(ordenEntity);
 
         return ordenEntity;
     }
@@ -143,6 +150,10 @@ public class OrdenService {
         }
 
         orden.setFechaActualizacion(LocalDateTime.now());
+
+        // 🔹 Recalcular total después de restar/eliminar
+        recalcularTotalCompra(orden);
+
         OrdenEntity actualizado = ordenRepository.save(orden);
 
         return mapper.mapEntityToResponseDto(actualizado);
@@ -183,5 +194,26 @@ public class OrdenService {
         return ordenes.stream()
                 .map(mapper::mapEntityToResponseDto)
                 .toList();
+    }
+
+    @Transactional(readOnly = true)
+    public List<OrdenResponseDTO> listarTodasLasOrdenes() {
+        log.info("📌 Consultando todas las órdenes registradas en BD");
+
+        List<OrdenEntity> ordenes = ordenRepository.findAll();
+
+        log.info("📌 Total órdenes recuperadas: {}", ordenes.size());
+
+        return ordenes.stream()
+                .map(mapper::mapEntityToResponseDto)
+                .toList();
+    }
+
+    private void recalcularTotalCompra(OrdenEntity ordenEntity) {
+        long total = ordenEntity.getDetalles().stream()
+                .mapToLong(d -> (d.getCantidad() != null ? d.getCantidad() : 0L) *
+                        (d.getPrecio() != null ? d.getPrecio() : 0L))
+                .sum();
+        ordenEntity.setTotalCompra(total);
     }
 }
