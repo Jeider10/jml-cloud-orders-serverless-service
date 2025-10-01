@@ -36,7 +36,7 @@ public class OrdenService {
 
     @Transactional
     public OrdenResponseDTO crearOrdenDeVenta(OrdenRequestDTO ordenRequestDTO) {
-        log.info("📌 Creando/actualizando Orden de Venta para cliente: {}", ordenRequestDTO.getIdentificacionCliente());
+        log.info("📌 Creando/actualizando Orden de Venta para cliente: {}", ordenRequestDTO.getNombreCliente());
 
         Optional<OrdenEntity> existente = ordenRepository
                 .findFirstByIdentificacionClienteAndEstadoOrden(ordenRequestDTO.getIdentificacionCliente(), ESTADO_ABIERTA);
@@ -47,61 +47,18 @@ public class OrdenService {
             // Caso: Agregar detalles a orden existente
             ordenEntity = existente.get();
             log.warn("⚠️ Ya existe una Orden ABIERTA para el cliente {}. Se agregarán los nuevos detalles.", ordenRequestDTO.getIdentificacionCliente());
-            agregarDetallesOrdenExistente(ordenEntity, ordenRequestDTO);
+
+            ordenUtils.agregarDetallesOrdenExistente(ordenEntity, ordenRequestDTO);
         } else {
             // Caso: Crear nueva orden
             log.info("🆕 No existe orden ABIERTA para el cliente {}. Se creará una nueva.", ordenRequestDTO.getIdentificacionCliente());
-            ordenEntity = crearNuevaOrden(ordenRequestDTO);
+            ordenEntity = ordenUtils.crearNuevaOrden(ordenRequestDTO);
         }
 
         OrdenEntity guardado = ordenRepository.save(ordenEntity);
         log.info("✅ Orden procesada correctamente. numeroOrden: {} con {} detalle(s)", guardado.getNumeroOrden(), guardado.getDetalles().size());
 
         return mapper.mapEntityToResponseDto(guardado);
-    }
-
-    private void agregarDetallesOrdenExistente(OrdenEntity ordenEntity, OrdenRequestDTO requestDTO) {
-        for (var detalleDTO : requestDTO.getDetalles()) {
-            OrdenDetalleEntity detalleEntity = mapper.mapDetalleRequestToEntity(detalleDTO);
-            detalleEntity.setOrden(ordenEntity);
-            detalleEntity.setFechaCreacion(LocalDateTime.now());
-            ordenEntity.getDetalles().add(detalleEntity);
-        }
-
-        ordenEntity.setIdentificacionCliente(requestDTO.getIdentificacionCliente());
-        ordenEntity.setNombreCliente(requestDTO.getNombreCliente());
-        ordenEntity.setIdentificacionEmpleado(requestDTO.getIdentificacionEmpleado());
-        ordenEntity.setNombreEmpleado(requestDTO.getNombreEmpleado());
-        ordenEntity.setIdentificacionProveedor(requestDTO.getIdentificacionProveedor());
-        ordenEntity.setNombreProveedor(requestDTO.getNombreProveedor());
-        ordenEntity.setFechaActualizacion(LocalDateTime.now());
-
-        // 🔹 Recalcular total después de agregar nuevos detalles
-        recalcularTotalCompra(ordenEntity);
-    }
-
-    private OrdenEntity crearNuevaOrden(OrdenRequestDTO requestDTO) {
-        OrdenEntity ordenEntity = mapper.mapRequestDtoToEntity(requestDTO);
-
-        // Generar UUID para numeroOrden si no viene (mapper ya lo genera)
-        if (ordenEntity.getNumeroOrden() == null || ordenEntity.getNumeroOrden().isBlank()) {
-            ordenEntity.setNumeroOrden(UUID.randomUUID().toString());
-        }
-
-        // fijar fecha + estado
-        ordenEntity.setFechaCreacion(LocalDateTime.now());
-        ordenEntity.setEstadoOrden(ESTADO_ABIERTA);
-
-        // asignar fechas de creación en detalles y enlace orden->detalle ya hecho en mapper
-        for (var d : ordenEntity.getDetalles()) {
-            d.setOrden(ordenEntity);
-            d.setFechaCreacion(LocalDateTime.now());
-        }
-
-        // 🔹 Calcular total inicial
-        recalcularTotalCompra(ordenEntity);
-
-        return ordenEntity;
     }
 
     @Transactional
@@ -152,7 +109,7 @@ public class OrdenService {
         orden.setFechaActualizacion(LocalDateTime.now());
 
         // 🔹 Recalcular total después de restar/eliminar
-        recalcularTotalCompra(orden);
+        ordenUtils.recalcularTotalCompra(orden);
 
         OrdenEntity actualizado = ordenRepository.save(orden);
 
@@ -207,13 +164,5 @@ public class OrdenService {
         return ordenes.stream()
                 .map(mapper::mapEntityToResponseDto)
                 .toList();
-    }
-
-    private void recalcularTotalCompra(OrdenEntity ordenEntity) {
-        long total = ordenEntity.getDetalles().stream()
-                .mapToLong(d -> (d.getCantidad() != null ? d.getCantidad() : 0L) *
-                        (d.getPrecio() != null ? d.getPrecio() : 0L))
-                .sum();
-        ordenEntity.setTotalCompra(total);
     }
 }

@@ -1,6 +1,7 @@
 package com.cloud.jml.config;
 
-import lombok.RequiredArgsConstructor;
+import com.cloud.jml.config.jwt.JwtRequestFilter;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -16,17 +17,23 @@ import org.springframework.web.cors.CorsConfiguration;
 
 import java.util.List;
 
+@Slf4j
 @Configuration
-@RequiredArgsConstructor
 public class SecurityConfig {
 
     private final JwtRequestFilter jwtRequestFilter;
+
+    public SecurityConfig(JwtRequestFilter jwtRequestFilter) {
+        this.jwtRequestFilter = jwtRequestFilter;
+        log.info("🔥 SecurityConfig inicializado correctamente.");
+    }
 
     @Bean
     public AuthenticationManager authenticationManager(AuthenticationConfiguration authConfig) throws Exception {
         return authConfig.getAuthenticationManager();
     }
 
+    // ✅ Bean global para encriptar contraseñas
     @Bean
     public PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();
@@ -48,13 +55,12 @@ public class SecurityConfig {
                     return config;
                 }))
                 .authorizeHttpRequests(auth -> auth
-                                .requestMatchers(
-//                                "/ordenes/register", // permitir registro de productos sin auth
-                                        "/css/**",
-                                        "/js/**",
-                                        "/images/**"
-                                ).permitAll()
-                                .anyRequest().authenticated()
+                        .requestMatchers(
+                                "/roles/**", // Permitir acciones en rol sin autenticación
+                                "/usuario/**", // Permitir acciones en user sin autenticación
+                                "/authentication/**" // Permitir acciones en auth sin autenticación
+                        ).permitAll()
+                        .anyRequest().authenticated()
                 )
                 .addFilterBefore(jwtRequestFilter, UsernamePasswordAuthenticationFilter.class);
 

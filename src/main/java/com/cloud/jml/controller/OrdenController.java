@@ -19,15 +19,16 @@ public class OrdenController {
 
     public OrdenController(OrdenService ordenService) {
         this.ordenService = ordenService;
+        log.info("🔥 OrdenController inicializado correctamente.");
     }
 
     @PostMapping("/register")
     public ResponseEntity<OrdenResponseDTO> crearOrdenDeVenta(@RequestBody OrdenRequestDTO ordenRequestDTO) {
-        log.info("📌 Iniciando petición para crear/actualizar Orden de Venta para cliente: {}", ordenRequestDTO.getIdentificacionCliente());
+        log.info("📌 Iniciando petición para crear/actualizar Orden de Venta para cliente: {}", ordenRequestDTO.getNombreCliente());
 
         OrdenResponseDTO crearOrdenVentaResponse = ordenService.crearOrdenDeVenta(ordenRequestDTO);
 
-        log.info("📌 Finaliza petición para crear/actualizar Orden de Venta para cliente: {}", ordenRequestDTO.getIdentificacionCliente());
+        log.info("📌 Finaliza petición para crear/actualizar Orden de Venta para cliente: {}", ordenRequestDTO.getNombreCliente());
 
         return ResponseEntity.ok(crearOrdenVentaResponse);
     }

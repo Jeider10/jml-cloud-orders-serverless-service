@@ -14,6 +14,9 @@ import java.util.UUID;
 @Component
 public class OrdenMapper {
 
+    public static final String ESTADO_ABIERTA = "ABIERTA";
+    public static final String ESTADO_CERRADA = "CERRADA";
+
     private final OrdenUtils ordenUtils;
 
     public OrdenMapper(OrdenUtils ordenUtils) {
@@ -111,5 +114,28 @@ public class OrdenMapper {
         }
 
         return responseDTO;
+    }
+
+    public void mapEstadoOrden(OrdenEntity ordenEntity) {
+        log.info("📌 Actualizando estado de orden: {}", ordenEntity.getNumeroOrden());
+        // fijar fecha + estado
+        ordenEntity.setFechaCreacion(LocalDateTime.now());
+        ordenEntity.setEstadoOrden(ESTADO_ABIERTA);
+
+        log.info("📌 Finalizando actualización de estado de orden: {}", ordenEntity.getNumeroOrden());
+    }
+
+    public void mapDetalleOrderExistente(OrdenEntity ordenEntity, OrdenRequestDTO requestDTO) {
+        log.info("📌 Actualizando detalles de orden existente: {}", ordenEntity.getNumeroOrden());
+
+        ordenEntity.setIdentificacionCliente(requestDTO.getIdentificacionCliente());
+        ordenEntity.setNombreCliente(requestDTO.getNombreCliente());
+        ordenEntity.setIdentificacionEmpleado(requestDTO.getIdentificacionEmpleado());
+        ordenEntity.setNombreEmpleado(requestDTO.getNombreEmpleado());
+        ordenEntity.setIdentificacionProveedor(requestDTO.getIdentificacionProveedor());
+        ordenEntity.setNombreProveedor(requestDTO.getNombreProveedor());
+        ordenEntity.setFechaActualizacion(LocalDateTime.now());
+
+        log.info("📌 Finalizando actualización de detalles de orden existente: {}", ordenEntity.getNumeroOrden());
     }
 }

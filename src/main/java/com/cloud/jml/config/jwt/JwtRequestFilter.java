@@ -1,11 +1,11 @@
-package com.cloud.jml.config;
+package com.cloud.jml.config.jwt;
 
 import io.jsonwebtoken.Claims;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
@@ -16,11 +16,16 @@ import org.springframework.web.filter.OncePerRequestFilter;
 import java.io.IOException;
 import java.util.List;
 
+@Slf4j
 @Component
-@RequiredArgsConstructor
 public class JwtRequestFilter extends OncePerRequestFilter {
 
     private final JwtUtil jwtUtil;
+
+    public JwtRequestFilter(JwtUtil jwtUtil) {
+        this.jwtUtil = jwtUtil;
+        log.info("🔥 JwtRequestFilter inicializado correctamente.");
+    }
 
     @Override
     protected void doFilterInternal(@NotNull HttpServletRequest request, @NotNull HttpServletResponse response, @NotNull FilterChain chain) throws ServletException, IOException {
@@ -28,9 +33,9 @@ public class JwtRequestFilter extends OncePerRequestFilter {
 //        String requestURI = request.getRequestURI();
 //
 //        // ✅ Excluir rutas rutas públicas que no requieren autenticación
-//        if (requestURI.startsWith("/auth/") || requestURI.startsWith("/clientes/") || requestURI.startsWith("/proveedores/")
-//                || requestURI.startsWith("/user/") || requestURI.startsWith("/subsidiary/") || requestURI.startsWith("/branch/")
-//                || requestURI.startsWith("/rol/") || requestURI.startsWith("/user-access/")) {
+//        if (requestURI.startsWith("/role/")
+//                || requestURI.startsWith("/usuario/")
+//                || requestURI.startsWith("/authentication/")) {
 //            chain.doFilter(request, response);
 //            return;
 //        }
@@ -43,11 +48,11 @@ public class JwtRequestFilter extends OncePerRequestFilter {
             if (jwtUtil.validateToken(token)) {
 
                 String userName = jwtUtil.extractClaim(token, "userName");
-                String role = mapRole(token);
+                String roleCode = mapRole(token);
 
                 // Autenticación con rol
                 UsernamePasswordAuthenticationToken authentication =
-                        new UsernamePasswordAuthenticationToken(userName, null, List.of(new SimpleGrantedAuthority(role)));
+                        new UsernamePasswordAuthenticationToken(userName, null, List.of(new SimpleGrantedAuthority(roleCode)));
 
                 SecurityContextHolder.getContext().setAuthentication(authentication);
             }
@@ -58,21 +63,30 @@ public class JwtRequestFilter extends OncePerRequestFilter {
 
     // Mapeo del código numérico a nombre de rol para Spring Security
     private String mapRole(String token) {
-        Claims claims = jwtUtil.parseClaims(token);
-
-        Object roleClaim = claims.get("role");
-        int role;
-
-        switch (roleClaim) {
-            case Integer integer -> role = integer;
-            case String string -> role = Integer.parseInt(string);
-            default -> throw new IllegalArgumentException("Tipo inesperado para claim 'role': " + roleClaim);
-        }
-
-        return switch (role) {
+        Integer roleCode = jwtUtil.extractRoleCode(token);
+        return switch (roleCode) {
             case 1 -> "ADMIN";
             case 2 -> "USER";
-            default -> throw new IllegalArgumentException("Rol desconocido: " + role);
+            default -> throw new IllegalArgumentException("Rol desconocido: " + roleCode);
+        };
+    }
+
+    private String mapRoleCode(String token) {
+        Claims claims = jwtUtil.parseClaims(token);
+
+        Object roleClaim = claims.get("roleCode");
+        int roleCode;
+
+        switch (roleClaim) {
+            case Integer integer -> roleCode = integer;
+            case String string -> roleCode = Integer.parseInt(string);
+            default -> throw new IllegalArgumentException("Tipo inesperado para claim 'roleCode': " + roleClaim);
+        }
+
+        return switch (roleCode) {
+            case 1 -> "ADMIN";
+            case 2 -> "USER";
+            default -> throw new IllegalArgumentException("RoleCode desconocido: " + roleCode);
         };
     }
 }
