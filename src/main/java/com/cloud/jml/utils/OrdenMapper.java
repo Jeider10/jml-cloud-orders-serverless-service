@@ -20,10 +20,10 @@ public class OrdenMapper {
 
     public static final String ESTADO_ABIERTA = "ABIERTA";
 
-    private final OrdenUtils ordenUtils;
+    private final OrdenFormatearFecha ordenFormatearFecha;
 
-    public OrdenMapper(OrdenUtils ordenUtils) {
-        this.ordenUtils = ordenUtils;
+    public OrdenMapper(OrdenFormatearFecha ordenFormatearFecha) {
+        this.ordenFormatearFecha = ordenFormatearFecha;
         log.info("🔥 OrdenMapper inicializado correctamente.");
     }
 
@@ -103,7 +103,7 @@ public class OrdenMapper {
         }
 
         // Fechas formateadas
-        ordenUtils.asignarFechasFormateadas(ordenEntity, ordenResponseDTO);
+        ordenFormatearFecha.asignarFechasFormateadas(ordenEntity, ordenResponseDTO);
 
         log.info("📌 Finalizando mapeo Entity a DTO para devolver Orden");
 
@@ -121,10 +121,10 @@ public class OrdenMapper {
         responseDTO.setPrecio(detalleEntity.getPrecio());
 
         if (detalleEntity.getFechaCreacion() != null) {
-            responseDTO.setFechaCreacion(ordenUtils.formatearFecha(detalleEntity.getFechaCreacion()));
+            responseDTO.setFechaCreacion(ordenFormatearFecha.formatearFecha(detalleEntity.getFechaCreacion()));
         }
         if (detalleEntity.getFechaActualizacion() != null) {
-            responseDTO.setFechaActualizacion(ordenUtils.formatearFecha(detalleEntity.getFechaActualizacion()));
+            responseDTO.setFechaActualizacion(ordenFormatearFecha.formatearFecha(detalleEntity.getFechaActualizacion()));
         }
 
         log.info("📌 Orden detalle mapeado: codigo={}, producto={}", detalleEntity.getCodigo(), detalleEntity.getProducto());
