@@ -1,12 +1,16 @@
 package com.cloud.jml.utils;
 
-import com.cloud.jml.dto.*;
+import com.cloud.jml.dto.OrdenDetalleRequestDTO;
+import com.cloud.jml.dto.OrdenDetalleResponseDTO;
+import com.cloud.jml.dto.OrdenRequestDTO;
+import com.cloud.jml.dto.OrdenResponseDTO;
 import com.cloud.jml.model.OrdenDetalleEntity;
 import com.cloud.jml.model.OrdenEntity;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
@@ -15,15 +19,13 @@ import java.util.UUID;
 public class OrdenMapper {
 
     public static final String ESTADO_ABIERTA = "ABIERTA";
-    public static final String ESTADO_CERRADA = "CERRADA";
 
     private final OrdenUtils ordenUtils;
 
     public OrdenMapper(OrdenUtils ordenUtils) {
         this.ordenUtils = ordenUtils;
+        log.info("🔥 OrdenMapper inicializado correctamente.");
     }
-
-    // ------------------ 🔹 DTO → Entity ------------------
 
     public OrdenEntity mapRequestDtoToEntity(OrdenRequestDTO ordenRequestDTO) {
         log.info("📌 Iniciando mapeo DTO a Entity para crear Orden");
@@ -44,11 +46,15 @@ public class OrdenMapper {
 
         // 🔹 Mapear lista de detalles
         if (ordenRequestDTO.getDetalles() != null) {
-            List<OrdenDetalleEntity> detalles = ordenRequestDTO.getDetalles().stream()
-                    .map(this::mapDetalleRequestToEntity)
-                    .peek(d -> d.setFechaCreacion(LocalDateTime.now()))
-                    .toList(); // nueva lista independiente para cada orden
-            detalles.forEach(d -> d.setOrden(ordenEntity));
+            List<OrdenDetalleEntity> detalles = new ArrayList<>();
+
+            for (OrdenDetalleRequestDTO detalleDTO : ordenRequestDTO.getDetalles()) {
+                OrdenDetalleEntity detalleEntity = mapDetalleRequestToEntity(detalleDTO);
+                detalleEntity.setFechaCreacion(LocalDateTime.now());
+                detalleEntity.setOrden(ordenEntity);
+                detalles.add(detalleEntity);
+            }
+
             ordenEntity.setDetalles(detalles);
         }
 
@@ -57,16 +63,20 @@ public class OrdenMapper {
     }
 
     public OrdenDetalleEntity mapDetalleRequestToEntity(OrdenDetalleRequestDTO detalleDTO) {
+        log.info("📌 Mapeando detalle: codigo={}, producto={}", detalleDTO.getCodigo(), detalleDTO.getProducto());
+
         OrdenDetalleEntity detalleEntity = new OrdenDetalleEntity();
+
         detalleEntity.setCodigo(detalleDTO.getCodigo());
         detalleEntity.setProducto(detalleDTO.getProducto());
         detalleEntity.setDescripcion(detalleDTO.getDescripcion());
         detalleEntity.setCantidad(detalleDTO.getCantidad());
         detalleEntity.setPrecio(detalleDTO.getPrecio());
+
+        log.info("📌 Detalle mapeado: codigo={}, producto={}", detalleDTO.getCodigo(), detalleDTO.getProducto());
+
         return detalleEntity;
     }
-
-    // ------------------ 🔹 Entity → DTO ------------------
 
     public OrdenResponseDTO mapEntityToResponseDto(OrdenEntity ordenEntity) {
         log.info("📌 Iniciando mapeo Entity a DTO para devolver Orden");
@@ -85,9 +95,10 @@ public class OrdenMapper {
 
         // 🔹 Mapear lista de detalles
         if (ordenEntity.getDetalles() != null) {
-            List<OrdenDetalleResponseDTO> detalles = ordenEntity.getDetalles().stream()
-                    .map(this::mapDetalleEntityToResponse)
-                    .toList();
+            List<OrdenDetalleResponseDTO> detalles = new ArrayList<>();
+            for (OrdenDetalleEntity detalle : ordenEntity.getDetalles()) {
+                detalles.add(mapDetalleEntityToResponse(detalle));
+            }
             ordenResponseDTO.setDetalles(detalles);
         }
 
@@ -95,10 +106,13 @@ public class OrdenMapper {
         ordenUtils.asignarFechasFormateadas(ordenEntity, ordenResponseDTO);
 
         log.info("📌 Finalizando mapeo Entity a DTO para devolver Orden");
+
         return ordenResponseDTO;
     }
 
     public OrdenDetalleResponseDTO mapDetalleEntityToResponse(OrdenDetalleEntity detalleEntity) {
+        log.info("📌 Mapeando Orden detalle: codigo={}, producto={}", detalleEntity.getCodigo(), detalleEntity.getProducto());
+
         OrdenDetalleResponseDTO responseDTO = new OrdenDetalleResponseDTO();
         responseDTO.setCodigo(detalleEntity.getCodigo());
         responseDTO.setProducto(detalleEntity.getProducto());
@@ -112,6 +126,8 @@ public class OrdenMapper {
         if (detalleEntity.getFechaActualizacion() != null) {
             responseDTO.setFechaActualizacion(ordenUtils.formatearFecha(detalleEntity.getFechaActualizacion()));
         }
+
+        log.info("📌 Orden detalle mapeado: codigo={}, producto={}", detalleEntity.getCodigo(), detalleEntity.getProducto());
 
         return responseDTO;
     }

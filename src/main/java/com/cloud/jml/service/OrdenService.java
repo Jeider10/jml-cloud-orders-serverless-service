@@ -2,6 +2,10 @@ package com.cloud.jml.service;
 
 import com.cloud.jml.dto.OrdenRequestDTO;
 import com.cloud.jml.dto.OrdenResponseDTO;
+import com.cloud.jml.exception.cantidad.CantidadInvalidaException;
+import com.cloud.jml.exception.orders.OrdenNoEncontradaException;
+import com.cloud.jml.exception.orders.OrdenPorClienteNoEncontradaException;
+import com.cloud.jml.exception.stock.StockInsuficienteException;
 import com.cloud.jml.model.OrdenDetalleEntity;
 import com.cloud.jml.model.OrdenEntity;
 import com.cloud.jml.repository.OrdenRepository;
@@ -11,17 +15,15 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
-import java.util.UUID;
+import java.util.stream.Stream;
 
 @Slf4j
 @Service
 public class OrdenService {
 
     public static final String ESTADO_ABIERTA = "ABIERTA";
-    public static final String ESTADO_CERRADA = "CERRADA";
 
     private final OrdenRepository ordenRepository;
     private final OrdenMapper mapper;
@@ -58,62 +60,61 @@ public class OrdenService {
         OrdenEntity guardado = ordenRepository.save(ordenEntity);
         log.info("✅ Orden procesada correctamente. numeroOrden: {} con {} detalle(s)", guardado.getNumeroOrden(), guardado.getDetalles().size());
 
-        return mapper.mapEntityToResponseDto(guardado);
+        OrdenResponseDTO ordenResponseDTO = mapper.mapEntityToResponseDto(guardado);
+        log.info("📌 Orden procesada correctamente. numeroOrden: {}", ordenResponseDTO.getNumeroOrden());
+
+        return ordenResponseDTO;
     }
 
     @Transactional
     public OrdenResponseDTO restarCantidadProducto(String numeroOrden, Long codigoProducto, int cantidadARestar) {
         log.info("📌 Iniciando restarCantidadProducto -> numeroOrden: {}, codigoProducto: {}, cantidadARestar: {}", numeroOrden, codigoProducto, cantidadARestar);
 
-        // 1) Buscar la orden ABIERTA
+        // 🔹 1) Buscar la orden ABIERTA
         Optional<OrdenEntity> ordenOpt = ordenRepository.findByNumeroOrdenAndEstadoOrden(numeroOrden, ESTADO_ABIERTA);
+
         if (ordenOpt.isEmpty()) {
             log.warn("⚠️ Orden no encontrada con numeroOrden: {}", numeroOrden);
-            throw new RuntimeException("Orden no encontrada: " + numeroOrden);
+            throw new OrdenNoEncontradaException(numeroOrden);
         }
 
         OrdenEntity orden = ordenOpt.get();
 
-        // 2) Buscar el detalle por codigo de producto
-        OrdenDetalleEntity detalle = orden.getDetalles().stream()
-                .filter(d -> d.getCodigo() != null && d.getCodigo().equals(codigoProducto))
-                .findFirst()
-                .orElseThrow(() -> new RuntimeException("Producto no encontrado en la orden: codigo " + codigoProducto));
+        // 🔹 2) Buscar el detalle por código de producto
+        OrdenDetalleEntity detalle = ordenUtils.buscarDetallePorCodigo(orden, codigoProducto);
 
-        // 3) Validaciones básicas de cantidad
+        // 🔹 3) Validaciones básicas de cantidad
         if (cantidadARestar <= 0) {
             log.warn("⚠️ Cantidad inválida a restar: {}", cantidadARestar);
-            throw new IllegalArgumentException("Cantidad a restar inválida");
+            throw new CantidadInvalidaException(cantidadARestar);
         }
 
-        Long cantidadActual = detalle.getCantidad() != null ? detalle.getCantidad() : 0L;
+        // 🔹 4) Obtener cantidad actual
+        long cantidadActual = ordenUtils.obtenerCantidadActual(detalle);
+
+        // 🔹 5) Validaciones básicas de cantidadActual < cantidadARestar
         if (cantidadActual < cantidadARestar) {
             log.warn("⚠️ Stock insuficiente en la orden. producto={}, cantidadActual={}, intentoRestar={}", codigoProducto, cantidadActual, cantidadARestar);
-            throw new IllegalArgumentException("Stock insuficiente en la orden");
+            throw new StockInsuficienteException(codigoProducto, cantidadActual, cantidadARestar);
         }
 
-        // 4) Calcular nueva cantidad
+        // 🔹 6) Calcular nueva cantidad
         long nuevaCantidad = cantidadActual - cantidadARestar;
 
-        if (nuevaCantidad <= 0) {
-            // eliminar el detalle de la orden
-            orden.getDetalles().remove(detalle);
-            log.info("🗑️ Detalle eliminado: producto(codigo)={} tras restar {}", codigoProducto, cantidadARestar);
-        } else {
-            // actualizar el detalle
-            detalle.setCantidad(nuevaCantidad);
-            detalle.setFechaActualizacion(LocalDateTime.now());
-            log.info("✅ Cantidad actualizada en producto(codigo)={}, nuevaCantidad={}", codigoProducto, nuevaCantidad);
-        }
+        // 🔹 7) Actualizar o eliminar detalle según corresponda
+        ordenUtils.actualizarOEliminarDetalle(orden, detalle, codigoProducto, cantidadARestar, nuevaCantidad);
 
-        orden.setFechaActualizacion(LocalDateTime.now());
-
-        // 🔹 Recalcular total después de restar/eliminar
+        // 🔹 8) Recalcular total después de restar/eliminar
         ordenUtils.recalcularTotalCompra(orden);
 
+        // 🔹 Guardar en la base
         OrdenEntity actualizado = ordenRepository.save(orden);
 
-        return mapper.mapEntityToResponseDto(actualizado);
+        // 🔹 Mapeamos a ordenResponseDTO
+        OrdenResponseDTO ordenResponseDTO = mapper.mapEntityToResponseDto(actualizado);
+        log.info("✅ RestarCantidadProducto finalizado correctamente. numeroOrden: {}", ordenResponseDTO.getNumeroOrden());
+
+        return ordenResponseDTO;
     }
 
     @Transactional
@@ -121,36 +122,60 @@ public class OrdenService {
         log.info("📌 Cerrando orden del cliente: {}", identificacionCliente);
 
         Optional<OrdenEntity> ordenOpt = ordenRepository.findFirstByIdentificacionClienteAndEstadoOrden(identificacionCliente, ESTADO_ABIERTA);
+
         if (ordenOpt.isEmpty()) {
-            throw new RuntimeException("No existe orden ABIERTA para este cliente");
+            log.warn("⚠️ No se encontró una orden ABIERTA para el cliente: {}", identificacionCliente);
+            throw new OrdenPorClienteNoEncontradaException(identificacionCliente);
         }
 
         OrdenEntity orden = ordenOpt.get();
-        orden.setEstadoOrden(ESTADO_CERRADA);
-        orden.setFechaActualizacion(LocalDateTime.now());
+        ordenUtils.mapCerrarOrden(orden);
 
         OrdenEntity guardado = ordenRepository.save(orden);
         log.info("✅ Orden cerrada correctamente para cliente: {}", identificacionCliente);
 
-        return mapper.mapEntityToResponseDto(guardado);
+        OrdenResponseDTO ordenResponseDTO = mapper.mapEntityToResponseDto(guardado);
+        log.info("📌 Orden cerrada correctamente para cliente: {}", identificacionCliente);
+
+        return ordenResponseDTO;
     }
 
     @Transactional(readOnly = true)
     public List<OrdenResponseDTO> listarOrdenesPorEstado(String estadoOrden) {
+        log.info("📌 Consultando órdenes por estado: {}", estadoOrden);
+
         List<OrdenEntity> ordenes = ordenRepository.findByEstadoOrden(estadoOrden);
 
-        return ordenes.stream()
-                .map(mapper::mapEntityToResponseDto)
-                .toList();
+        // convertir a stream
+        Stream<OrdenEntity> ordenesStream = ordenes.stream();
+
+        // mapear entidades a DTOs
+        Stream<OrdenResponseDTO> dtoStream = ordenesStream.map(mapper::mapEntityToResponseDto);
+
+        // recolectar en lista
+        List<OrdenResponseDTO> responseList = dtoStream.toList();
+        log.info("📌 Total órdenes recuperadas: {} por estado: {}", responseList.size(), estadoOrden);
+
+        return responseList;
     }
 
     @Transactional(readOnly = true)
     public List<OrdenResponseDTO> listarOrdenesPorClienteYEstado(Long identificacionCliente, String estadoOrden) {
+        log.info("📌 Consultando órdenes por cliente: {} y estado: {}", identificacionCliente, estadoOrden);
+
         List<OrdenEntity> ordenes = ordenRepository.findByIdentificacionClienteAndEstadoOrden(identificacionCliente, estadoOrden);
 
-        return ordenes.stream()
-                .map(mapper::mapEntityToResponseDto)
-                .toList();
+        // convertir a stream
+        Stream<OrdenEntity> ordenesStream = ordenes.stream();
+
+        // mapear entidades a DTOs
+        Stream<OrdenResponseDTO> dtoStream = ordenesStream.map(mapper::mapEntityToResponseDto);
+
+        // recolectar en lista
+        List<OrdenResponseDTO> responseList = dtoStream.toList();
+        log.info("📌 Total órdenes recuperadas: {} por cliente: {} y estado: {}", responseList.size(), identificacionCliente, estadoOrden);
+
+        return responseList;
     }
 
     @Transactional(readOnly = true)
@@ -161,8 +186,16 @@ public class OrdenService {
 
         log.info("📌 Total órdenes recuperadas: {}", ordenes.size());
 
-        return ordenes.stream()
-                .map(mapper::mapEntityToResponseDto)
-                .toList();
+        // convertir a stream
+        Stream<OrdenEntity> ordenesStream = ordenes.stream();
+
+        // mapear entidades a DTOs
+        Stream<OrdenResponseDTO> dtoStream = ordenesStream.map(mapper::mapEntityToResponseDto);
+
+        // recolectar en lista
+        List<OrdenResponseDTO> responseList = dtoStream.toList();
+        log.info("📌 Total órdenes recuperadas: {}", responseList.size());
+
+        return responseList;
     }
 }
