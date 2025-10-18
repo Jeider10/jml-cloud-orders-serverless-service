@@ -2,67 +2,58 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0"
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
-    <modelVersion>4.0.0</modelVersion>
 
+    <!-- ***************************** Project info *****************************-->
+    <modelVersion>4.0.0</modelVersion>
     <groupId>com.cloud.jml</groupId>
     <artifactId>jml-cloud-orders-serverless-service</artifactId>
     <version>1.0-SNAPSHOT</version>
 
+    <!-- Usar spring-boot-starter-parent como parent -->
+    <parent>
+        <groupId>org.springframework.boot</groupId>
+        <artifactId>spring-boot-starter-parent</artifactId>
+        <version>3.5.6</version>
+        <relativePath/> <!-- lookup parent from repository -->
+    </parent>
+
     <properties>
-        <maven.compiler.source>21</maven.compiler.source>
-        <maven.compiler.target>21</maven.compiler.target>
+        <java.version>21</java.version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 
-        <springframework.version>3.5.5</springframework.version>
-        <maven-compiler-plugin.version>3.14.0</maven-compiler-plugin.version>
-        <maven-surefire-plugin.version>3.5.3</maven-surefire-plugin.version>
+        <maven-surefire-plugin.version>3.5.4</maven-surefire-plugin.version>
 
-        <com.mysql.version>9.2.0</com.mysql.version>
-        <projectlombok.version>1.18.36</projectlombok.version>
+        <com.mysql.version>9.4.0</com.mysql.version>
+        <projectlombok.version>1.18.42</projectlombok.version>
         <jsonwebtoken.version>0.13.0</jsonwebtoken.version>
-        <jetbrains.version>24.0.0</jetbrains.version>
+        <jetbrains.version>26.0.2-1</jetbrains.version>
+        <ch.qos.logback.version>1.5.19</ch.qos.logback.version>
     </properties>
 
-    <dependencyManagement>
-        <dependencies>
-            <!-- Dependencia padre de Spring Boot (gestiona versiones de starters y dependencias comunes) -->
-            <dependency>
-                <groupId>org.springframework.boot</groupId>
-                <artifactId>spring-boot-starter-parent</artifactId>
-                <version>${springframework.version}</version>
-                <type>pom</type>
-                <scope>import</scope>
-            </dependency>
-        </dependencies>
-    </dependencyManagement>
-
     <dependencies>
-        <!-- Core de Spring Boot (logging, configuración automática, utilidades básicas) -->
-        <dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter</artifactId>
-            <version>${springframework.version}</version>
-        </dependency>
-
+        <!-- ***************************** Dependencias de Spring Boot *****************************-->
         <!-- Starter para crear aplicaciones web REST (incluye Tomcat embebido y Jackson) -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-web</artifactId>
-            <version>${springframework.version}</version>
+            <exclusions>
+                <exclusion>
+                    <groupId>ch.qos.logback</groupId>
+                    <artifactId>logback-core</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
 
         <!-- Starter para seguridad (Spring Security, autenticación, autorización) -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-security</artifactId>
-            <version>${springframework.version}</version>
         </dependency>
 
         <!-- Starter para persistencia con JPA/Hibernate -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-data-jpa</artifactId>
-            <version>${springframework.version}</version>
         </dependency>
 
         <!-- Motor de plantillas Thymeleaf (para renderizar vistas HTML) -->
@@ -77,6 +68,7 @@
             <artifactId>spring-boot-starter-validation</artifactId>
         </dependency>
 
+        <!-- ***************************** External Dependencies *****************************-->
         <!-- Driver JDBC para MySQL -->
         <dependency>
             <groupId>com.mysql</groupId>
@@ -90,7 +82,6 @@
             <artifactId>jjwt-api</artifactId>
             <version>${jsonwebtoken.version}</version>
         </dependency>
-
         <!-- JWT: implementación (se carga en runtime) -->
         <dependency>
             <groupId>io.jsonwebtoken</groupId>
@@ -98,13 +89,19 @@
             <version>${jsonwebtoken.version}</version>
             <scope>runtime</scope>
         </dependency>
-
         <!-- JWT: integración con Jackson para serializar/parsear tokens -->
         <dependency>
             <groupId>io.jsonwebtoken</groupId>
             <artifactId>jjwt-jackson</artifactId>
             <version>${jsonwebtoken.version}</version>
             <scope>runtime</scope>
+        </dependency>
+
+        <!-- Núcleo de Logback: framework de logging predeterminado en Spring Boot (maneja configuración, appenders y niveles de log) -->
+        <dependency>
+            <groupId>ch.qos.logback</groupId>
+            <artifactId>logback-core</artifactId>
+            <version>${ch.qos.logback.version}</version>
         </dependency>
 
         <!-- Lombok: elimina boilerplate (getters, setters, constructores, builders, etc.) -->
@@ -123,45 +120,28 @@
             <scope>compile</scope>
         </dependency>
 
+        <!-- ***************************** Test Dependencies *****************************-->
         <!-- Starter de testing para Spring Boot (JUnit 5, Mockito, AssertJ, Hamcrest, etc.) -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-test</artifactId>
-            <version>${springframework.version}</version>
             <scope>test</scope>
         </dependency>
     </dependencies>
 
     <build>
         <plugins>
-            <!-- Plugin para compilar usando Java 21 -->
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-compiler-plugin</artifactId>
-                <version>${maven-compiler-plugin.version}</version>
-                <configuration>
-                    <source>${maven.compiler.source}</source>
-                    <target>${maven.compiler.target}</target>
-                    <compilerArgs>
-                        <arg>-parameters</arg>
-                    </compilerArgs>
-                </configuration>
-            </plugin>
-
             <!-- Plugin para ejecutar pruebas unitarias con JUnit/Mockito -->
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-surefire-plugin</artifactId>
                 <version>${maven-surefire-plugin.version}</version>
-                <configuration>
-                </configuration>
             </plugin>
 
             <!-- Plugin de Spring Boot: empaqueta la app en un fat JAR ejecutable -->
             <plugin>
                 <groupId>org.springframework.boot</groupId>
                 <artifactId>spring-boot-maven-plugin</artifactId>
-                <version>${springframework.version}</version>
                 <executions>
                     <execution>
                         <goals>
