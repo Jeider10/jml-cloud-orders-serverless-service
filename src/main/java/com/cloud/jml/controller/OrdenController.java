@@ -94,4 +94,18 @@ public class OrdenController {
 
         return ResponseEntity.ok(ordenes);
     }
+
+    @DeleteMapping("/delete/{numeroOrden}")
+    public ResponseEntity<Void> eliminarOrdenCliente(
+            @PathVariable("numeroOrden") String numeroOrden,
+            @RequestParam("cliente") Long identificacionCliente) {
+
+        log.info("📌 Intentando eliminar orden -> numeroOrden: {}, del cliente con identificacionCliente: {}", numeroOrden, identificacionCliente);
+
+        ordenService.eliminarOrdenCliente(numeroOrden, identificacionCliente);
+
+        log.info("✅ Orden eliminada correctamente -> numeroOrden: {}, del cliente con identificacionCliente: {}", numeroOrden, identificacionCliente);
+
+        return ResponseEntity.ok().build();
+    }
 }

@@ -57,7 +57,7 @@ public class OrdenService {
             ordenEntity = ordenUtils.crearNuevaOrden(ordenRequestDTO);
         }
 
-        OrdenEntity guardado = ordenRepository.save(ordenEntity);
+        OrdenEntity guardado = ordenUtils.guardarOrdenBD(ordenEntity);
         log.info("✅ Orden procesada correctamente. numeroOrden: {} con {} detalle(s)", guardado.getNumeroOrden(), guardado.getDetalles().size());
 
         OrdenResponseDTO ordenResponseDTO = mapper.mapEntityToResponseDto(guardado);
@@ -108,7 +108,8 @@ public class OrdenService {
         ordenUtils.recalcularTotalCompra(orden);
 
         // 🔹 Guardar en la base
-        OrdenEntity actualizado = ordenRepository.save(orden);
+        OrdenEntity actualizado = ordenUtils.guardarOrdenBD(orden);
+        log.info("✅ Orden actualizada correctamente. numeroOrden: {}", actualizado.getNumeroOrden());
 
         // 🔹 Mapeamos a ordenResponseDTO
         OrdenResponseDTO ordenResponseDTO = mapper.mapEntityToResponseDto(actualizado);
@@ -131,7 +132,7 @@ public class OrdenService {
         OrdenEntity orden = ordenOpt.get();
         ordenUtils.mapCerrarOrden(orden);
 
-        OrdenEntity guardado = ordenRepository.save(orden);
+        OrdenEntity guardado = ordenUtils.guardarOrdenBD(orden);
         log.info("✅ Orden cerrada correctamente para cliente: {}", identificacionCliente);
 
         OrdenResponseDTO ordenResponseDTO = mapper.mapEntityToResponseDto(guardado);
@@ -197,5 +198,25 @@ public class OrdenService {
         log.info("📌 Total órdenes recuperadas: {}", responseList.size());
 
         return responseList;
+    }
+
+    @Transactional
+    public void eliminarOrdenCliente(String numeroOrden, Long identificacionCliente) {
+        log.info("📌 Intentando eliminar la orden: {}, del cliente con identificacionCliente: {}", numeroOrden, identificacionCliente);
+
+        Optional<OrdenEntity> ordenOptional = ordenRepository.findByNumeroOrdenAndIdentificacionCliente(numeroOrden, identificacionCliente);
+
+        if (ordenOptional.isPresent()) {
+            OrdenEntity ordenEntity = ordenOptional.get();
+            log.info("📌 Orden encontrada: {}", ordenEntity.getNumeroOrden());
+
+            ordenUtils.eliminarOrdenBD(ordenEntity);
+            log.info("🗑️ Orden: {}, del cliente: {} con identificacionCliente: {} eliminada correctamente.",
+                    ordenEntity.getNumeroOrden(), ordenEntity.getNombreCliente(), ordenEntity.getIdentificacionCliente());
+
+        } else {
+            log.warn("⚠️ No se encontró ninguna orden con número: {} para el cliente con identificacionCliente: {}", numeroOrden, identificacionCliente);
+            throw new OrdenPorClienteNoEncontradaException(identificacionCliente);
+        }
     }
 }

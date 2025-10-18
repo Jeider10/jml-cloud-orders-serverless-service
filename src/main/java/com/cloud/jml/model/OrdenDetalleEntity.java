@@ -23,7 +23,8 @@ public class OrdenDetalleEntity {
     private Long cantidad;
     private Long precio;
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    // Relación muchos a uno: varios detalles pertenecen a una misma orden; Carga perezosa. Carga diferida para optimizar rendimiento
+    @ManyToOne(fetch = FetchType.LAZY) // Solo se trae desde la base de datos cuando realmente accedes al campo orden
     @JoinColumn(name = "numero_orden", nullable = false) // FK hacia OrdenEntity.numero_orden
     private OrdenEntity orden;
 

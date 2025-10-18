@@ -33,8 +33,8 @@ public class OrdenMapper {
         OrdenEntity ordenEntity = new OrdenEntity();
 
         // generar numeroOrden (UUID)
-        String generated = UUID.randomUUID().toString();
-        ordenEntity.setNumeroOrden(generated);
+        String generatedNumeroOrden = UUID.randomUUID().toString();
+        ordenEntity.setNumeroOrden(generatedNumeroOrden);
 
         ordenEntity.setIdentificacionCliente(ordenRequestDTO.getIdentificacionCliente());
         ordenEntity.setNombreCliente(ordenRequestDTO.getNombreCliente());
@@ -58,7 +58,8 @@ public class OrdenMapper {
             ordenEntity.setDetalles(detalles);
         }
 
-        log.info("📌 Finalizando mapeo DTO a Entity para crear Orden (numeroOrden={})", generated);
+        log.info("📌 Finalizando mapeo DTO a Entity para crear Orden (numeroOrden={})", generatedNumeroOrden);
+
         return ordenEntity;
     }
 
@@ -96,9 +97,11 @@ public class OrdenMapper {
         // 🔹 Mapear lista de detalles
         if (ordenEntity.getDetalles() != null) {
             List<OrdenDetalleResponseDTO> detalles = new ArrayList<>();
+
             for (OrdenDetalleEntity detalle : ordenEntity.getDetalles()) {
                 detalles.add(mapDetalleEntityToResponse(detalle));
             }
+
             ordenResponseDTO.setDetalles(detalles);
         }
 
@@ -123,6 +126,7 @@ public class OrdenMapper {
         if (detalleEntity.getFechaCreacion() != null) {
             responseDTO.setFechaCreacion(ordenFormatearFecha.formatearFecha(detalleEntity.getFechaCreacion()));
         }
+
         if (detalleEntity.getFechaActualizacion() != null) {
             responseDTO.setFechaActualizacion(ordenFormatearFecha.formatearFecha(detalleEntity.getFechaActualizacion()));
         }
@@ -134,6 +138,7 @@ public class OrdenMapper {
 
     public void mapEstadoOrden(OrdenEntity ordenEntity) {
         log.info("📌 Actualizando estado de orden: {}", ordenEntity.getNumeroOrden());
+
         // fijar fecha + estado
         ordenEntity.setFechaCreacion(LocalDateTime.now());
         ordenEntity.setEstadoOrden(ESTADO_ABIERTA);

@@ -35,6 +35,7 @@ public class OrdenEntity {
     @Column(name = "fecha_actualizacion")
     private LocalDateTime fechaActualizacion;
 
+    // Relación uno a muchos: una orden puede tener varios detalles; se propagan cambios y se eliminan huérfanos automáticamente
     @OneToMany(mappedBy = "orden", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<OrdenDetalleEntity> detalles = new ArrayList<>();
 }

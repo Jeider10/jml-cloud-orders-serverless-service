@@ -1,10 +1,14 @@
 package com.cloud.jml.utils;
 
 import com.cloud.jml.dto.OrdenRequestDTO;
+import com.cloud.jml.exception.orders.OrdenPersistenceException;
 import com.cloud.jml.exception.producto.ProductoNoEncontradoException;
 import com.cloud.jml.model.OrdenDetalleEntity;
 import com.cloud.jml.model.OrdenEntity;
+import com.cloud.jml.repository.OrdenRepository;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.dao.DataAccessException;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Component;
 
 import java.time.LocalDateTime;
@@ -16,11 +20,49 @@ public class OrdenUtils {
 
     public static final String ESTADO_CERRADA = "CERRADA";
 
+    private final OrdenRepository ordenRepository;
     private final OrdenMapper mapper;
 
-    public OrdenUtils(OrdenMapper mapper) {
+    public OrdenUtils(OrdenRepository ordenRepository, OrdenMapper mapper) {
+        this.ordenRepository = ordenRepository;
         this.mapper = mapper;
         log.info("🔥 OrdenUtils inicializado correctamente.");
+    }
+
+    public OrdenEntity guardarOrdenBD(OrdenEntity ordenEntity) {
+        try {
+            return ordenRepository.save(ordenEntity);
+
+        } catch (DataIntegrityViolationException e) {
+            log.error("🚨 Violación de integridad al guardar la orden: {}", e.getMessage(), e);
+            throw new OrdenPersistenceException("Error de integridad en base de datos al guardar la orden", e);
+
+        } catch (DataAccessException e) {
+            log.error("🚨 Error de acceso a datos al guardar la orden: {}", e.getMessage(), e);
+            throw new OrdenPersistenceException("Error al guardar la orden en la base de datos", e);
+
+        } catch (Exception e) {
+            log.error("🚨 Error inesperado al guardar la orden: {}", e.getMessage(), e);
+            throw new OrdenPersistenceException("Error inesperado al registrar la orden", e);
+        }
+    }
+
+    public void eliminarOrdenBD(OrdenEntity ordenEntity) {
+        try {
+            ordenRepository.delete(ordenEntity);
+
+        } catch (DataIntegrityViolationException e) {
+            log.error("🚨 Violación de integridad al eliminar la orden: {}", e.getMessage(), e);
+            throw new OrdenPersistenceException("Error de integridad en base de datos al eliminar la orden", e);
+
+        } catch (DataAccessException e) {
+            log.error("🚨 Error de acceso a datos al eliminar la orden: {}", e.getMessage(), e);
+            throw new OrdenPersistenceException("Error al eliminar la orden en la base de datos", e);
+
+        } catch (Exception e) {
+            log.error("🚨 Error inesperado al eliminar la orden: {}", e.getMessage(), e);
+            throw new OrdenPersistenceException("Error inesperado al eliminar la orden", e);
+        }
     }
 
     public OrdenEntity crearNuevaOrden(OrdenRequestDTO requestDTO) {
