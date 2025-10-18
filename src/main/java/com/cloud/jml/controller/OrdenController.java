@@ -22,13 +22,24 @@ public class OrdenController {
         log.info("🔥 OrdenController inicializado correctamente.");
     }
 
+    @GetMapping("/list/all")
+    public ResponseEntity<List<OrdenResponseDTO>> listarTodasLasOrdenes() {
+        log.info("📥 [SOLICITUD] Listar todas las órdenes de venta");
+
+        List<OrdenResponseDTO> ordenes = ordenService.listarTodasLasOrdenes();
+
+        log.info("📤 [RESPUESTA] Se retornan {} órdenes de venta", ordenes.size());
+
+        return ResponseEntity.ok(ordenes);
+    }
+
     @PostMapping("/register")
     public ResponseEntity<OrdenResponseDTO> crearOrdenDeVenta(@RequestBody OrdenRequestDTO ordenRequestDTO) {
-        log.info("📌 Iniciando petición para crear/actualizar Orden de Venta para cliente: {}", ordenRequestDTO.getNombreCliente());
+        log.info("📥 [SOLICITUD] Creación o actualización de orden de venta para cliente: {}", ordenRequestDTO.getNombreCliente());
 
         OrdenResponseDTO crearOrdenVentaResponse = ordenService.crearOrdenDeVenta(ordenRequestDTO);
 
-        log.info("📌 Finaliza petición para crear/actualizar Orden de Venta para cliente: {}", ordenRequestDTO.getNombreCliente());
+        log.info("📤 [RESPUESTA] Orden procesada exitosamente para cliente: {}", crearOrdenVentaResponse.getNombreCliente());
 
         return ResponseEntity.ok(crearOrdenVentaResponse);
     }
@@ -39,33 +50,33 @@ public class OrdenController {
             @RequestParam("codigo") Long codigoProducto,
             @RequestParam("cantidad") int cantidadARestar) {
 
-        log.info("📌 Petición RESTAR en orden -> numeroOrden: {}, codigoProducto: {}, cantidad: {}", numeroOrden, codigoProducto, cantidadARestar);
+        log.info("📥 [SOLICITUD] Restar producto en orden -> numeroOrden: {}, codigoProducto: {}, cantidadARestar: {}", numeroOrden, codigoProducto, cantidadARestar);
 
         OrdenResponseDTO ordenActualizada = ordenService.restarCantidadProducto(numeroOrden, codigoProducto, cantidadARestar);
 
-        log.info("📌 Finaliza petición para restar/eliminar producto de venta para cliente: {}", cantidadARestar);
+        log.info("📤 [RESPUESTA] Orden actualizada exitosamente luego de restar producto -> numeroOrden: {}", numeroOrden);
 
         return ResponseEntity.ok(ordenActualizada);
     }
 
     @PatchMapping("/cliente/orden/cerrar/{identificacionCliente}")
     public ResponseEntity<OrdenResponseDTO> cerrarOrdenPorCliente(@PathVariable Long identificacionCliente) {
-        log.info("📌 Iniciando petición para cerrar cuenta del cliente: {}", identificacionCliente);
+        log.info("📥 [SOLICITUD] Solicitud para cerrar orden del cliente con identificación: {}", identificacionCliente);
 
         OrdenResponseDTO dto = ordenService.cerrarOrdenPorCliente(identificacionCliente);
 
-        log.info("📌 Finaliza petición para cerrar venta para cliente con identificacion: {}", identificacionCliente);
+        log.info("📤 [RESPUESTA] Orden cerrada exitosamente para cliente con identificación: {}", identificacionCliente);
 
         return ResponseEntity.ok(dto);
     }
 
     @GetMapping("/list/estado")
     public ResponseEntity<List<OrdenResponseDTO>> listarOrdenesPorEstado(@RequestParam("estado") String estadoOrden) {
-        log.info("📌 Iniciando petición para listar ordenes por estado: {}", estadoOrden);
+        log.info("📥 [SOLICITUD] Solicitud para listar órdenes con estado: {}", estadoOrden);
 
         List<OrdenResponseDTO> ordenes = ordenService.listarOrdenesPorEstado(estadoOrden);
 
-        log.info("📌 Finaliza petición para listar ordenes por estado: {}", estadoOrden);
+        log.info("📤 [RESPUESTA] Se retornan {} órdenes con estado: {}", ordenes.size(), estadoOrden);
 
         return ResponseEntity.ok(ordenes);
     }
@@ -75,22 +86,11 @@ public class OrdenController {
             @RequestParam("cliente") Long identificacionCliente,
             @RequestParam("estado") String estadoOrden) {
 
-        log.info("📌 Iniciando petición para listar ordenes por cliente: {}, y estado: {}", identificacionCliente, estadoOrden);
+        log.info("📥 [SOLICITUD] Solicitud para listar órdenes del cliente: {} con estado: {}", identificacionCliente, estadoOrden);
 
         List<OrdenResponseDTO> ordenes = ordenService.listarOrdenesPorClienteYEstado(identificacionCliente, estadoOrden);
 
-        log.info("📌 Finaliza petición para listar ordenes por cliente: {}, y estado: {}", identificacionCliente, estadoOrden);
-
-        return ResponseEntity.ok(ordenes);
-    }
-
-    @GetMapping("/list/all")
-    public ResponseEntity<List<OrdenResponseDTO>> listarTodasLasOrdenes() {
-        log.info("📌 Iniciando petición para listar TODAS las órdenes de venta");
-
-        List<OrdenResponseDTO> ordenes = ordenService.listarTodasLasOrdenes();
-
-        log.info("📌 Finaliza petición para listar TODAS las órdenes. Total encontradas: {}", ordenes.size());
+        log.info("📤 [RESPUESTA] Se retornan {} órdenes del cliente: {} con estado: {}", ordenes.size(), identificacionCliente, estadoOrden);
 
         return ResponseEntity.ok(ordenes);
     }
@@ -100,11 +100,11 @@ public class OrdenController {
             @PathVariable("numeroOrden") String numeroOrden,
             @RequestParam("cliente") Long identificacionCliente) {
 
-        log.info("📌 Intentando eliminar orden -> numeroOrden: {}, del cliente con identificacionCliente: {}", numeroOrden, identificacionCliente);
+        log.info("📥 [SOLICITUD] Solicitud para eliminar orden -> númeroOrden: {}, cliente: {}", numeroOrden, identificacionCliente);
 
         ordenService.eliminarOrdenCliente(numeroOrden, identificacionCliente);
 
-        log.info("✅ Orden eliminada correctamente -> numeroOrden: {}, del cliente con identificacionCliente: {}", numeroOrden, identificacionCliente);
+        log.info("📤 [RESPUESTA] Orden eliminada exitosamente -> númeroOrden: {}, cliente: {}", numeroOrden, identificacionCliente);
 
         return ResponseEntity.ok().build();
     }

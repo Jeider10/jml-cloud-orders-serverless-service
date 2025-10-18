@@ -36,116 +36,161 @@ public class OrdenService {
         log.info("🔥 OrdenService inicializado correctamente.");
     }
 
+    @Transactional(readOnly = true)
+    public List<OrdenResponseDTO> listarTodasLasOrdenes() {
+        log.info("🔍 [CONSULTA] Recuperando todas las órdenes desde la base de datos");
+
+        List<OrdenEntity> ordenesEntity = ordenRepository.findAll();
+
+        if (ordenesEntity.isEmpty()) {
+            log.warn("⚠️ [RESULTADO] No se encontraron órdenes registradas en la base de datos");
+            return List.of();
+        }
+
+        log.info("📦 [MAPEO] Transformando {} entidades de órdenes a DTOs", ordenesEntity.size());
+
+        // convertir a stream
+        Stream<OrdenEntity> ordenesStream = ordenesEntity.stream();
+
+        // mapear entidades a DTOs
+        Stream<OrdenResponseDTO> dtoStream = ordenesStream.map(mapper::mapEntityToResponseDto);
+
+        // recolectar en lista
+        List<OrdenResponseDTO> ordenResponse = dtoStream.toList();
+
+        log.info("✅ [FINALIZADO] Total de órdenes mapeadas y retornadas: {}", ordenResponse.size());
+
+        return ordenResponse;
+    }
+
     @Transactional
     public OrdenResponseDTO crearOrdenDeVenta(OrdenRequestDTO ordenRequestDTO) {
-        log.info("📌 Creando/actualizando Orden de Venta para cliente: {}", ordenRequestDTO.getNombreCliente());
+        log.info("🔍 [CONSULTA] Verificando si el cliente {} tiene una orden ABIERTA", ordenRequestDTO.getIdentificacionCliente());
 
-        Optional<OrdenEntity> existente = ordenRepository
+        Optional<OrdenEntity> ordenExistente = ordenRepository
                 .findFirstByIdentificacionClienteAndEstadoOrden(ordenRequestDTO.getIdentificacionCliente(), ESTADO_ABIERTA);
 
         OrdenEntity ordenEntity;
 
-        if (existente.isPresent()) {
+        if (ordenExistente.isPresent()) {
             // Caso: Agregar detalles a orden existente
-            ordenEntity = existente.get();
-            log.warn("⚠️ Ya existe una Orden ABIERTA para el cliente {}. Se agregarán los nuevos detalles.", ordenRequestDTO.getIdentificacionCliente());
-
+            ordenEntity = ordenExistente.get();
+            log.warn("⚠️ [RESULTADO] Ya existe una orden ABIERTA para el cliente {}. Se agregarán los nuevos detalles.", ordenRequestDTO.getIdentificacionCliente());
             ordenUtils.agregarDetallesOrdenExistente(ordenEntity, ordenRequestDTO);
         } else {
-            // Caso: Crear nueva orden
-            log.info("🆕 No existe orden ABIERTA para el cliente {}. Se creará una nueva.", ordenRequestDTO.getIdentificacionCliente());
+            log.info("🆕 [CREACIÓN] No se encontró orden ABIERTA para el cliente {}. Creando nueva orden.", ordenRequestDTO.getIdentificacionCliente());
             ordenEntity = ordenUtils.crearNuevaOrden(ordenRequestDTO);
         }
 
-        OrdenEntity guardado = ordenUtils.guardarOrdenBD(ordenEntity);
-        log.info("✅ Orden procesada correctamente. numeroOrden: {} con {} detalle(s)", guardado.getNumeroOrden(), guardado.getDetalles().size());
+        OrdenEntity guardarOrden = ordenUtils.guardarOrdenBD(ordenEntity);
+        log.info("💾 [PERSISTENCIA] Orden guardada exitosamente. numeroOrden: {} con {} detalle(s)", guardarOrden.getNumeroOrden(), guardarOrden.getDetalles().size());
 
-        OrdenResponseDTO ordenResponseDTO = mapper.mapEntityToResponseDto(guardado);
-        log.info("📌 Orden procesada correctamente. numeroOrden: {}", ordenResponseDTO.getNumeroOrden());
+        log.info("📦 [MAPEO] Transformando entidad de orden a DTO para respuesta");
+        OrdenResponseDTO ordenResponseDTO = mapper.mapEntityToResponseDto(guardarOrden);
+        log.info("📦 [MAPEO] Orden mapeada a DTO para respuesta. numeroOrden: {}", ordenResponseDTO.getNumeroOrden());
+
+        log.info("✅ [FINALIZADO] Orden procesada correctamente. numeroOrden: {}", ordenResponseDTO.getNumeroOrden());
 
         return ordenResponseDTO;
     }
 
     @Transactional
     public OrdenResponseDTO restarCantidadProducto(String numeroOrden, Long codigoProducto, int cantidadARestar) {
-        log.info("📌 Iniciando restarCantidadProducto -> numeroOrden: {}, codigoProducto: {}, cantidadARestar: {}", numeroOrden, codigoProducto, cantidadARestar);
+        log.info("🔍 [CONSULTA] Verificando existencia de orden ABIERTA con numeroOrden: {}", numeroOrden);
 
         // 🔹 1) Buscar la orden ABIERTA
         Optional<OrdenEntity> ordenOpt = ordenRepository.findByNumeroOrdenAndEstadoOrden(numeroOrden, ESTADO_ABIERTA);
 
         if (ordenOpt.isEmpty()) {
-            log.warn("⚠️ Orden no encontrada con numeroOrden: {}", numeroOrden);
+            log.warn("❌ [ERROR] No se encontró una orden ABIERTA con numeroOrden: {}", numeroOrden);
             throw new OrdenNoEncontradaException(numeroOrden);
         }
 
         OrdenEntity orden = ordenOpt.get();
 
         // 🔹 2) Buscar el detalle por código de producto
+        log.info("🔍 [CONSULTA] Buscando detalle del producto con código: {}", codigoProducto);
         OrdenDetalleEntity detalle = ordenUtils.buscarDetallePorCodigo(orden, codigoProducto);
 
         // 🔹 3) Validaciones básicas de cantidad
         if (cantidadARestar <= 0) {
-            log.warn("⚠️ Cantidad inválida a restar: {}", cantidadARestar);
+            log.warn("⚠️ [VALIDACIÓN] Cantidad inválida a restar: {}", cantidadARestar);
             throw new CantidadInvalidaException(cantidadARestar);
         }
 
         // 🔹 4) Obtener cantidad actual
         long cantidadActual = ordenUtils.obtenerCantidadActual(detalle);
+        log.info("📦 [DATOS] Cantidad actual del producto {}: {}", codigoProducto, cantidadActual);
 
         // 🔹 5) Validaciones básicas de cantidadActual < cantidadARestar
         if (cantidadActual < cantidadARestar) {
-            log.warn("⚠️ Stock insuficiente en la orden. producto={}, cantidadActual={}, intentoRestar={}", codigoProducto, cantidadActual, cantidadARestar);
+            log.warn("⚠️ [VALIDACIÓN] Stock insuficiente -> producto={}, cantidadActual={}, intentoRestar={}", codigoProducto, cantidadActual, cantidadARestar);
             throw new StockInsuficienteException(codigoProducto, cantidadActual, cantidadARestar);
         }
 
         // 🔹 6) Calcular nueva cantidad
         long nuevaCantidad = cantidadActual - cantidadARestar;
+        log.info("📦 [CÁLCULO] Nueva cantidad resultante para producto {}: {}", codigoProducto, nuevaCantidad);
 
         // 🔹 7) Actualizar o eliminar detalle según corresponda
+        log.info("🔧 [ACTUALIZACIÓN] Actualizando o eliminando detalle según cantidad resultante...");
         ordenUtils.actualizarOEliminarDetalle(orden, detalle, codigoProducto, cantidadARestar, nuevaCantidad);
 
         // 🔹 8) Recalcular total después de restar/eliminar
+        log.info("🔄 [RECALCULO] Recalculando total de la orden...");
         ordenUtils.recalcularTotalCompra(orden);
 
         // 🔹 Guardar en la base
         OrdenEntity actualizado = ordenUtils.guardarOrdenBD(orden);
-        log.info("✅ Orden actualizada correctamente. numeroOrden: {}", actualizado.getNumeroOrden());
+        log.info("💾 [PERSISTENCIA] Orden actualizada y guardada en base de datos. numeroOrden: {}", actualizado.getNumeroOrden());
 
         // 🔹 Mapeamos a ordenResponseDTO
+        log.info("📦 [MAPEO] Transformando entidad actualizada a DTO...");
         OrdenResponseDTO ordenResponseDTO = mapper.mapEntityToResponseDto(actualizado);
-        log.info("✅ RestarCantidadProducto finalizado correctamente. numeroOrden: {}", ordenResponseDTO.getNumeroOrden());
+
+        log.info("✅ [FINALIZADO] Operación completada exitosamente. numeroOrden: {}", ordenResponseDTO.getNumeroOrden());
 
         return ordenResponseDTO;
     }
 
     @Transactional
     public OrdenResponseDTO cerrarOrdenPorCliente(Long identificacionCliente) {
-        log.info("📌 Cerrando orden del cliente: {}", identificacionCliente);
+        log.info("🔍 [CONSULTA] Buscando orden ABIERTA del cliente con identificación: {}", identificacionCliente);
 
         Optional<OrdenEntity> ordenOpt = ordenRepository.findFirstByIdentificacionClienteAndEstadoOrden(identificacionCliente, ESTADO_ABIERTA);
 
         if (ordenOpt.isEmpty()) {
-            log.warn("⚠️ No se encontró una orden ABIERTA para el cliente: {}", identificacionCliente);
+            log.warn("❌ [ERROR] No se encontró una orden ABIERTA para el cliente: {}", identificacionCliente);
             throw new OrdenPorClienteNoEncontradaException(identificacionCliente);
         }
 
         OrdenEntity orden = ordenOpt.get();
+        log.info("🔧 [ACTUALIZACIÓN] Cerrando orden del cliente con identificación: {}", identificacionCliente);
         ordenUtils.mapCerrarOrden(orden);
 
-        OrdenEntity guardado = ordenUtils.guardarOrdenBD(orden);
-        log.info("✅ Orden cerrada correctamente para cliente: {}", identificacionCliente);
+        OrdenEntity guardarOrden = ordenUtils.guardarOrdenBD(orden);
+        log.info("💾 [PERSISTENCIA] Orden cerrada y guardada correctamente en la base de datos. numeroOrden: {}", guardarOrden.getNumeroOrden());
 
-        OrdenResponseDTO ordenResponseDTO = mapper.mapEntityToResponseDto(guardado);
-        log.info("📌 Orden cerrada correctamente para cliente: {}", identificacionCliente);
+        log.info("📦 [MAPEO] Transformando entidad cerrada a DTO para respuesta");
+        OrdenResponseDTO ordenResponseDTO = mapper.mapEntityToResponseDto(guardarOrden);
+
+        log.info("✅ [FINALIZADO] Orden cerrada exitosamente para cliente con identificación: {}", identificacionCliente);
 
         return ordenResponseDTO;
     }
 
     @Transactional(readOnly = true)
     public List<OrdenResponseDTO> listarOrdenesPorEstado(String estadoOrden) {
-        log.info("📌 Consultando órdenes por estado: {}", estadoOrden);
+        log.info("🔍 [CONSULTA] Recuperando órdenes con estado: {}", estadoOrden);
 
         List<OrdenEntity> ordenes = ordenRepository.findByEstadoOrden(estadoOrden);
+
+        if (ordenes.isEmpty()) {
+            log.warn("⚠️ [RESULTADO] No se encontraron órdenes con estado: {}", estadoOrden);
+            return List.of();
+        }
+
+        log.info("📦 [MAPEO] Transformando {} entidades de órdenes a DTOs (estado: {})", ordenes.size(), estadoOrden);
 
         // convertir a stream
         Stream<OrdenEntity> ordenesStream = ordenes.stream();
@@ -155,37 +200,24 @@ public class OrdenService {
 
         // recolectar en lista
         List<OrdenResponseDTO> responseList = dtoStream.toList();
-        log.info("📌 Total órdenes recuperadas: {} por estado: {}", responseList.size(), estadoOrden);
+
+        log.info("✅ [FINALIZADO] Total de órdenes mapeadas y retornadas: {} (estado: {})", responseList.size(), estadoOrden);
 
         return responseList;
     }
 
     @Transactional(readOnly = true)
     public List<OrdenResponseDTO> listarOrdenesPorClienteYEstado(Long identificacionCliente, String estadoOrden) {
-        log.info("📌 Consultando órdenes por cliente: {} y estado: {}", identificacionCliente, estadoOrden);
+        log.info("🔍 [CONSULTA] Recuperando órdenes del cliente: {} con estado: {}", identificacionCliente, estadoOrden);
 
         List<OrdenEntity> ordenes = ordenRepository.findByIdentificacionClienteAndEstadoOrden(identificacionCliente, estadoOrden);
 
-        // convertir a stream
-        Stream<OrdenEntity> ordenesStream = ordenes.stream();
+        if (ordenes.isEmpty()) {
+            log.warn("⚠️ [RESULTADO] No se encontraron órdenes del cliente: {} con estado: {}", identificacionCliente, estadoOrden);
+            return List.of();
+        }
 
-        // mapear entidades a DTOs
-        Stream<OrdenResponseDTO> dtoStream = ordenesStream.map(mapper::mapEntityToResponseDto);
-
-        // recolectar en lista
-        List<OrdenResponseDTO> responseList = dtoStream.toList();
-        log.info("📌 Total órdenes recuperadas: {} por cliente: {} y estado: {}", responseList.size(), identificacionCliente, estadoOrden);
-
-        return responseList;
-    }
-
-    @Transactional(readOnly = true)
-    public List<OrdenResponseDTO> listarTodasLasOrdenes() {
-        log.info("📌 Consultando todas las órdenes registradas en BD");
-
-        List<OrdenEntity> ordenes = ordenRepository.findAll();
-
-        log.info("📌 Total órdenes recuperadas: {}", ordenes.size());
+        log.info("📦 [MAPEO] Transformando {} entidades de órdenes a DTOs (cliente: {}, estado: {})", ordenes.size(), identificacionCliente, estadoOrden);
 
         // convertir a stream
         Stream<OrdenEntity> ordenesStream = ordenes.stream();
@@ -195,28 +227,29 @@ public class OrdenService {
 
         // recolectar en lista
         List<OrdenResponseDTO> responseList = dtoStream.toList();
-        log.info("📌 Total órdenes recuperadas: {}", responseList.size());
+
+        log.info("✅ [FINALIZADO] Total de órdenes mapeadas y retornadas: {} (cliente: {}, estado: {})", responseList.size(), identificacionCliente, estadoOrden);
 
         return responseList;
     }
 
     @Transactional
     public void eliminarOrdenCliente(String numeroOrden, Long identificacionCliente) {
-        log.info("📌 Intentando eliminar la orden: {}, del cliente con identificacionCliente: {}", numeroOrden, identificacionCliente);
+        log.info("🔍 [CONSULTA] Buscando orden número: {} para cliente: {}", numeroOrden, identificacionCliente);
 
         Optional<OrdenEntity> ordenOptional = ordenRepository.findByNumeroOrdenAndIdentificacionCliente(numeroOrden, identificacionCliente);
 
-        if (ordenOptional.isPresent()) {
-            OrdenEntity ordenEntity = ordenOptional.get();
-            log.info("📌 Orden encontrada: {}", ordenEntity.getNumeroOrden());
-
-            ordenUtils.eliminarOrdenBD(ordenEntity);
-            log.info("🗑️ Orden: {}, del cliente: {} con identificacionCliente: {} eliminada correctamente.",
-                    ordenEntity.getNumeroOrden(), ordenEntity.getNombreCliente(), ordenEntity.getIdentificacionCliente());
-
-        } else {
-            log.warn("⚠️ No se encontró ninguna orden con número: {} para el cliente con identificacionCliente: {}", numeroOrden, identificacionCliente);
+        if (ordenOptional.isEmpty()) {
+            log.warn("⚠️ [NO ENCONTRADA] No existe orden con número: {} para cliente: {}", numeroOrden, identificacionCliente);
             throw new OrdenPorClienteNoEncontradaException(identificacionCliente);
         }
+
+        OrdenEntity ordenEntity = ordenOptional.get();
+        log.info("📦 [ENCONTRADA] Orden localizada -> númeroOrden: {}, cliente: {}, estado: {}",
+                ordenEntity.getNumeroOrden(), ordenEntity.getIdentificacionCliente(), ordenEntity.getEstadoOrden());
+
+        ordenUtils.eliminarOrdenBD(ordenEntity);
+        log.info("🗑️ [ELIMINADA] Orden eliminada exitosamente -> númeroOrden: {}, cliente: {}",
+                ordenEntity.getNumeroOrden(), ordenEntity.getIdentificacionCliente());
     }
 }

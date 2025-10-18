@@ -16,37 +16,64 @@ import java.util.Map;
 @RestControllerAdvice
 public class GlobalExceptionHandler {
 
+    // 🧾 Errores de órdenes
     @ExceptionHandler(OrdenRuntimeException.class)
-    public ResponseEntity<Map<String, Object>> handleOrdersErrors(OrdenRuntimeException ex) {
-        return buildErrorResponse(ex.getStatus(), "📦 Error en orden", ex.getMessage());
+    public ResponseEntity<Map<String, Object>> handleOrdenErrors(OrdenRuntimeException ex) {
+        return buildErrorResponse(
+                ex.getStatus(),
+                "📦 [ORDEN] Error en orden",
+                ex.getMessage()
+        );
     }
 
+    // ⚖️ Errores de stock insuficiente
     @ExceptionHandler(StockInsuficienteException.class)
     public ResponseEntity<Map<String, Object>> handleStockInsuficiente(StockInsuficienteException ex) {
-        return buildErrorResponse(ex.getStatus(), "📦 Stock insuficiente", ex.getMessage());
+        return buildErrorResponse(
+                ex.getStatus(),
+                "⚖️ [STOCK] Stock insuficiente",
+                ex.getMessage()
+        );
     }
 
+    // 🔢 Errores de cantidad inválida
     @ExceptionHandler(CantidadInvalidaException.class)
     public ResponseEntity<Map<String, Object>> handleCantidadInvalida(CantidadInvalidaException ex) {
-        return buildErrorResponse(ex.getStatus(), "📦 Cantidad inválida", ex.getMessage());
+        return buildErrorResponse(
+                ex.getStatus(),
+                "🔢 [CANTIDAD] Valor de cantidad inválido",
+                ex.getMessage()
+        );
     }
 
+    // 📦 Errores relacionados con productos
     @ExceptionHandler(ProductoRuntimeException.class)
     public ResponseEntity<Map<String, Object>> handleProductoErrors(ProductoRuntimeException ex) {
-        return buildErrorResponse(ex.getStatus(), "📦 Error en producto", ex.getMessage());
+        return buildErrorResponse(
+                ex.getStatus(),
+                "📦 [PRODUCTO] Error en producto",
+                ex.getMessage()
+        );
     }
 
+    // 🔥 Errores generales no controlados
     @ExceptionHandler(Exception.class)
     public ResponseEntity<Map<String, Object>> handleGeneral(Exception ex) {
-        return buildErrorResponse(HttpStatus.INTERNAL_SERVER_ERROR, "🔥 Error interno", ex.getMessage());
+        return buildErrorResponse(
+                HttpStatus.INTERNAL_SERVER_ERROR,
+                "🔥 [GENERAL] Error interno del servidor",
+                ex.getMessage()
+        );
     }
 
+    // 🧱 Método común de respuesta
     private ResponseEntity<Map<String, Object>> buildErrorResponse(HttpStatus status, String error, String message) {
         Map<String, Object> body = new HashMap<>();
+        body.put("timestamp", LocalDateTime.now());
         body.put("status", status.value());
         body.put("error", error);
         body.put("message", message);
-        body.put("timestamp", LocalDateTime.now());
+
         return ResponseEntity.status(status).body(body);
     }
 }

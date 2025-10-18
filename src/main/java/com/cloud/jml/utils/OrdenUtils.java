@@ -29,17 +29,20 @@ public class OrdenUtils {
         log.info("🔥 OrdenUtils inicializado correctamente.");
     }
 
+    /**
+     * 💾 Guarda la orden en BD con manejo de excepciones.
+     */
     public OrdenEntity guardarOrdenBD(OrdenEntity ordenEntity) {
         try {
             return ordenRepository.save(ordenEntity);
 
         } catch (DataIntegrityViolationException e) {
             log.error("🚨 Violación de integridad al guardar la orden: {}", e.getMessage(), e);
-            throw new OrdenPersistenceException("Error de integridad en base de datos al guardar la orden", e);
+            throw new OrdenPersistenceException("Error de integridad al guardar la orden", e);
 
         } catch (DataAccessException e) {
             log.error("🚨 Error de acceso a datos al guardar la orden: {}", e.getMessage(), e);
-            throw new OrdenPersistenceException("Error al guardar la orden en la base de datos", e);
+            throw new OrdenPersistenceException("Error de acceso a datos al guardar la orden", e);
 
         } catch (Exception e) {
             log.error("🚨 Error inesperado al guardar la orden: {}", e.getMessage(), e);
@@ -47,17 +50,20 @@ public class OrdenUtils {
         }
     }
 
+    /**
+     * 🗑️ Elimina la orden de BD con manejo de excepciones.
+     */
     public void eliminarOrdenBD(OrdenEntity ordenEntity) {
         try {
             ordenRepository.delete(ordenEntity);
 
         } catch (DataIntegrityViolationException e) {
             log.error("🚨 Violación de integridad al eliminar la orden: {}", e.getMessage(), e);
-            throw new OrdenPersistenceException("Error de integridad en base de datos al eliminar la orden", e);
+            throw new OrdenPersistenceException("Error de integridad al eliminar la orden", e);
 
         } catch (DataAccessException e) {
             log.error("🚨 Error de acceso a datos al eliminar la orden: {}", e.getMessage(), e);
-            throw new OrdenPersistenceException("Error al eliminar la orden en la base de datos", e);
+            throw new OrdenPersistenceException("Error de acceso a datos al eliminar la orden", e);
 
         } catch (Exception e) {
             log.error("🚨 Error inesperado al eliminar la orden: {}", e.getMessage(), e);
@@ -65,12 +71,15 @@ public class OrdenUtils {
         }
     }
 
+    /**
+     * 🆕 Crea una nueva orden desde un DTO de solicitud.
+     */
     public OrdenEntity crearNuevaOrden(OrdenRequestDTO requestDTO) {
-        log.info("🆕 Creando nueva orden para cliente: {}", requestDTO.getIdentificacionCliente());
+        log.info("🆕 [SOLICITUD] Creando nueva orden para cliente: {}", requestDTO.getIdentificacionCliente());
 
         OrdenEntity ordenEntity = mapper.mapRequestDtoToEntity(requestDTO);
 
-        // Generar UUID para numeroOrden si no viene (mapper ya lo genera)
+        // Generar UUID si el mapper no lo asignó
         if (ordenEntity.getNumeroOrden() == null || ordenEntity.getNumeroOrden().isBlank()) {
             ordenEntity.setNumeroOrden(UUID.randomUUID().toString());
         }
@@ -80,48 +89,61 @@ public class OrdenUtils {
         // asignar fechas de creación en detalles y enlace orden->detalle ya hecho en mapper
         asignarOrdenYFechaADetalles(ordenEntity);
 
-        // 🔹 Calcular total inicial
+        // 🧮 Calcular total inicial
         recalcularTotalCompra(ordenEntity);
 
-        log.info("🆕 Nueva orden creada: {}", ordenEntity.getNumeroOrden());
+        log.info("🆕 [FINALIZADO] Nueva orden creada: {}", ordenEntity.getNumeroOrden());
 
         return ordenEntity;
     }
 
+    /**
+     * 🗂️ Asigna la orden y fecha de creación a cada detalle.
+     */
     public void asignarOrdenYFechaADetalles(OrdenEntity ordenEntity) {
-        log.info("📌 Asignando orden y fecha a detalles para orden: {}", ordenEntity.getNumeroOrden());
+        log.info("🗂️ [SOLICITUD] Asignando orden y fecha a detalles (numeroOrden={})", ordenEntity.getNumeroOrden());
 
-        if (ordenEntity.getDetalles() != null) {
+        if (ordenEntity.getDetalles() != null && !ordenEntity.getDetalles().isEmpty()) {
             for (OrdenDetalleEntity ordenDetalle : ordenEntity.getDetalles()) {
                 ordenDetalle.setOrden(ordenEntity);
                 ordenDetalle.setFechaCreacion(LocalDateTime.now());
             }
-            log.info("📌 Detalles asignados a orden: {}", ordenEntity.getNumeroOrden());
+            log.info("✅ [FINALIZADO] Detalles asignados correctamente a la orden: {}", ordenEntity.getNumeroOrden());
         } else {
-            log.warn("⚠️ No se encontraron detalles para la orden: {}", ordenEntity.getNumeroOrden());
+            log.warn("⚠️ [FINALIZADO] No se encontraron detalles para la orden: {}", ordenEntity.getNumeroOrden());
         }
     }
 
+    /**
+     * 🗂️ Agrega detalles a una orden existente y recalcula total.
+     */
     public void agregarDetallesOrdenExistente(OrdenEntity ordenEntity, OrdenRequestDTO requestDTO) {
-        log.info("📌 Agregando detalles a orden existente: {}", ordenEntity.getNumeroOrden());
+        log.info("🗂️ [SOLICITUD] Agregando detalles a orden existente: {}", ordenEntity.getNumeroOrden());
 
-        for (var detalleDTO : requestDTO.getDetalles()) {
-            OrdenDetalleEntity detalleEntity = mapper.mapDetalleRequestToEntity(detalleDTO);
-            detalleEntity.setOrden(ordenEntity);
-            detalleEntity.setFechaCreacion(LocalDateTime.now());
-            ordenEntity.getDetalles().add(detalleEntity);
+        if (requestDTO.getDetalles() != null && !requestDTO.getDetalles().isEmpty()) {
+            for (var detalleDTO : requestDTO.getDetalles()) {
+                OrdenDetalleEntity detalleEntity = mapper.mapDetalleRequestToEntity(detalleDTO);
+                detalleEntity.setOrden(ordenEntity);
+                detalleEntity.setFechaCreacion(LocalDateTime.now());
+                ordenEntity.getDetalles().add(detalleEntity);
+            }
+        } else {
+            log.warn("⚠️ [FINALIZADO] No hay detalles en request para agregar a la orden: {}", ordenEntity.getNumeroOrden());
         }
 
         mapper.mapDetalleOrderExistente(ordenEntity, requestDTO);
 
-        // 🔹 Recalcular total después de agregar nuevos detalles
+        // 🧮 Recalcular total después de agregar nuevos detalles
         recalcularTotalCompra(ordenEntity);
 
-        log.info("📌 Detalles agregados a orden existente: {}", ordenEntity.getNumeroOrden());
+        log.info("✅ [FINALIZADO] Detalles agregados correctamente a orden existente: {}", ordenEntity.getNumeroOrden());
     }
 
+    /**
+     * 🧮 Recalcula el total de la orden sumando todos los subtotales.
+     */
     public void recalcularTotalCompra(OrdenEntity ordenEntity) {
-        log.info("📌 Recalculando total de compra para orden: {}", ordenEntity.getNumeroOrden());
+        log.info("🧮 [SOLICITUD] Recalculando total de compra para orden: {}", ordenEntity.getNumeroOrden());
 
         long total = 0L;
 
@@ -132,62 +154,78 @@ public class OrdenUtils {
             long subtotal = cantidad * precio;
 
             total += subtotal;
+
+            log.info("➕ [OPERACIÓN] Sumando subtotal del producto(código={}): {} * {} = {}", ordenDetalle.getCodigo(), cantidad, precio, subtotal);
         }
 
         ordenEntity.setTotalCompra(total);
 
-        log.info("📌 Total de compra recalculado: {}", total);
+        log.info("💰 [FINALIZADO] Total de compra recalculado para orden {}: {}", ordenEntity.getNumeroOrden(), total);
     }
 
+    /**
+     * 🔍 Busca un detalle por código de producto.
+     */
     public OrdenDetalleEntity buscarDetallePorCodigo(OrdenEntity orden, Long codigoProducto) {
-        log.info("🔍 Buscando detalle por código: {}", codigoProducto);
+        log.info("🔍 [SOLICITUD] Buscando detalle por código: {}", codigoProducto);
 
-        for (OrdenDetalleEntity detalle : orden.getDetalles()) {
-            if (codigoProducto != null && codigoProducto.equals(detalle.getCodigo())) {
-                log.info("🔍 Detalle encontrado: {}", codigoProducto);
-                return detalle;
+        if (orden.getDetalles() != null) {
+            for (OrdenDetalleEntity detalle : orden.getDetalles()) {
+                if (codigoProducto != null && codigoProducto.equals(detalle.getCodigo())) {
+                    log.info("🔍 [CONSULTA] Detalle encontrado: {}", codigoProducto);
+                    return detalle;
+                }
             }
         }
 
-        log.warn("⚠️ No se encontró detalle con código: {}", codigoProducto);
+        log.warn("⚠️ [FINALIZADO] No se encontró detalle con código: {}", codigoProducto);
         throw new ProductoNoEncontradoException(codigoProducto);
     }
 
+    /**
+     * 📊 Obtiene la cantidad actual de un detalle.
+     */
     public long obtenerCantidadActual(OrdenDetalleEntity detalle) {
-        log.info("📌 Obteniendo cantidad actual del detalle: {}", detalle.getCodigo());
+        log.info("📊 [SOLICITUD] Consultando cantidad actual del detalle: {}", detalle.getCodigo());
 
         if (detalle.getCantidad() != null) {
-            log.info("📌 Cantidad actual: {}", detalle.getCantidad());
+            log.info("✅ [FINALIZADO] Cantidad actual disponible: {}", detalle.getCantidad());
             return detalle.getCantidad();
         } else {
-            log.info("📌 Cantidad actual: 0");
+            log.info("⚠️ [RETORNO] Cantidad actual no definida, se retorna 0");
             return 0L;
         }
     }
 
+    /**
+     * ⚖️ Actualiza o elimina un detalle según la nueva cantidad.
+     */
     public void actualizarOEliminarDetalle(OrdenEntity orden, OrdenDetalleEntity detalle, Long codigoProducto, long cantidadARestar, long nuevaCantidad) {
-        log.info("📌 Actualizando o eliminando detalle: producto(codigo)={}, cantidadARestar={}", codigoProducto, cantidadARestar);
+        log.info("⚖️ [SOLICITUD] Procesando detalle: código={}, cantidadARestar={}", codigoProducto, cantidadARestar);
 
         if (nuevaCantidad <= 0) {
             // eliminar el detalle de la orden
             orden.getDetalles().remove(detalle);
-            log.info("🗑️ Detalle eliminado: producto(codigo)={} tras restar {}", codigoProducto, cantidadARestar);
+            log.info("🗑️ [SOLICITUD] Detalle eliminado: código={} tras restar {}", codigoProducto, cantidadARestar);
         } else {
             // actualizar el detalle
             detalle.setCantidad(nuevaCantidad);
             detalle.setFechaActualizacion(LocalDateTime.now());
-            log.info("✅ Cantidad actualizada en producto(codigo)={}, nuevaCantidad={}", codigoProducto, nuevaCantidad);
+            log.info("✏️ [FINALIZADO] Cantidad actualizada: código={}, nuevaCantidad={}", codigoProducto, nuevaCantidad);
         }
-        // 🔹 siempre actualizar la fecha de la orden
+        // 📅 siempre actualizar la fecha de la orden
         orden.setFechaActualizacion(LocalDateTime.now());
     }
 
+    /**
+     * 🔒 Cierra la orden y actualiza fecha de modificación.
+     */
     public void mapCerrarOrden(OrdenEntity orden) {
-        log.info("📌 Cerrando orden: {}", orden.getNumeroOrden());
+        log.info("🔒 [INICIO] Cerrando orden: {}", orden.getNumeroOrden());
 
         orden.setEstadoOrden(ESTADO_CERRADA);
         orden.setFechaActualizacion(LocalDateTime.now());
 
-        log.info("📌 Orden cerrada: {}", orden.getNumeroOrden());
+        log.info("✅ [FINALIZADO] Orden cerrada: {}", orden.getNumeroOrden());
     }
 }

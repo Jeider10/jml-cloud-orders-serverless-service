@@ -5,25 +5,38 @@ import org.springframework.http.HttpStatus;
 public class OrdenDeletionException extends OrdenRuntimeException {
 
     public OrdenDeletionException(String message) {
-        super(HttpStatus.INTERNAL_SERVER_ERROR, "🗑️ " + message);
+        super(HttpStatus.INTERNAL_SERVER_ERROR, "🗑️ [ELIMINACIÓN] " + message);
     }
 
     public OrdenDeletionException(String message, Throwable cause) {
-        super(HttpStatus.INTERNAL_SERVER_ERROR, "🗑️ " + message + " | Causa: " + cause.getMessage());
+        super(
+                HttpStatus.INTERNAL_SERVER_ERROR,
+                "🗑️ [ELIMINACIÓN] " + message +
+                        (cause != null ? " | 💥 Causa: " + cause.getMessage() : "")
+        );
     }
 
-    // 🔒 Error por violación de integridad (constraint, duplicado, etc.) al eliminar
+    // 🔒 Violación de integridad referencial (por constraints o dependencias)
     public static OrdenDeletionException integrityViolation(Throwable cause) {
-        return new OrdenDeletionException("❌ No se pudo eliminar la orden debido a una violación de integridad referencial", cause);
+        return new OrdenDeletionException(
+                "❌ [INTEGRIDAD] No se pudo eliminar la orden debido a una violación de integridad referencial.",
+                cause
+        );
     }
 
-    // ⚙️ Error al acceder o comunicarse con la base de datos al eliminar
+    // ⚙️ Error de acceso a datos
     public static OrdenDeletionException dataAccessError(Throwable cause) {
-        return new OrdenDeletionException("❌ Error de acceso a datos al intentar eliminar la orden", cause);
+        return new OrdenDeletionException(
+                "❌ [DATOS] Error de acceso a la base de datos al intentar eliminar la orden.",
+                cause
+        );
     }
 
-    // 💥 Error inesperado (no contemplado en los anteriores) al eliminar
+    // 💥 Error inesperado
     public static OrdenDeletionException unexpected(Throwable cause) {
-        return new OrdenDeletionException("❌ Error inesperado al intentar eliminar la orden", cause);
+        return new OrdenDeletionException(
+                "💥 [INESPERADO] Ocurrió un error inesperado al intentar eliminar la orden.",
+                cause
+        );
     }
 }

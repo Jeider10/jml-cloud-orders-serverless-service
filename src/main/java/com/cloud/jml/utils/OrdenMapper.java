@@ -27,14 +27,17 @@ public class OrdenMapper {
         log.info("🔥 OrdenMapper inicializado correctamente.");
     }
 
+    /**
+     * 📦 Convierte un DTO de solicitud de orden en una entidad lista para persistir.
+     */
     public OrdenEntity mapRequestDtoToEntity(OrdenRequestDTO ordenRequestDTO) {
-        log.info("📌 Iniciando mapeo DTO a Entity para crear Orden");
+        log.info("📦 [MAPEO] Iniciando mapeo DTO → Entity para creación de orden.");
 
         OrdenEntity ordenEntity = new OrdenEntity();
 
         // generar numeroOrden (UUID)
-        String generatedNumeroOrden = UUID.randomUUID().toString();
-        ordenEntity.setNumeroOrden(generatedNumeroOrden);
+        String numeroOrden = UUID.randomUUID().toString();
+        ordenEntity.setNumeroOrden(numeroOrden);
 
         ordenEntity.setIdentificacionCliente(ordenRequestDTO.getIdentificacionCliente());
         ordenEntity.setNombreCliente(ordenRequestDTO.getNombreCliente());
@@ -44,8 +47,8 @@ public class OrdenMapper {
         ordenEntity.setNombreProveedor(ordenRequestDTO.getNombreProveedor());
         ordenEntity.setFechaCreacion(LocalDateTime.now());
 
-        // 🔹 Mapear lista de detalles
-        if (ordenRequestDTO.getDetalles() != null) {
+        // 📦 Mapeo lista de detalles
+        if (ordenRequestDTO.getDetalles() != null && !ordenRequestDTO.getDetalles().isEmpty()) {
             List<OrdenDetalleEntity> detalles = new ArrayList<>();
 
             for (OrdenDetalleRequestDTO detalleDTO : ordenRequestDTO.getDetalles()) {
@@ -56,15 +59,20 @@ public class OrdenMapper {
             }
 
             ordenEntity.setDetalles(detalles);
+        } else {
+            log.warn("⚠️ [VALIDACIÓN] La orden no contiene detalles asociados (numeroOrden={}).", numeroOrden);
         }
 
-        log.info("📌 Finalizando mapeo DTO a Entity para crear Orden (numeroOrden={})", generatedNumeroOrden);
+        log.info("✅ [MAPEO] Mapeo completado DTO → Entity (numeroOrden={})", numeroOrden);
 
         return ordenEntity;
     }
 
+    /**
+     * 📦 Convierte un detalle de solicitud en su entidad correspondiente.
+     */
     public OrdenDetalleEntity mapDetalleRequestToEntity(OrdenDetalleRequestDTO detalleDTO) {
-        log.info("📌 Mapeando detalle: codigo={}, producto={}", detalleDTO.getCodigo(), detalleDTO.getProducto());
+        log.debug("📦 [MAPEO] Mapeando detalle: código={}, producto={}", detalleDTO.getCodigo(), detalleDTO.getProducto());
 
         OrdenDetalleEntity detalleEntity = new OrdenDetalleEntity();
 
@@ -74,13 +82,16 @@ public class OrdenMapper {
         detalleEntity.setCantidad(detalleDTO.getCantidad());
         detalleEntity.setPrecio(detalleDTO.getPrecio());
 
-        log.info("📌 Detalle mapeado: codigo={}, producto={}", detalleDTO.getCodigo(), detalleDTO.getProducto());
+        log.debug("✅ [MAPEO] Detalle mapeado correctamente: código={}, producto={}", detalleDTO.getCodigo(), detalleDTO.getProducto());
 
         return detalleEntity;
     }
 
+    /**
+     * 📦 Convierte una entidad de orden completa en un DTO de respuesta.
+     */
     public OrdenResponseDTO mapEntityToResponseDto(OrdenEntity ordenEntity) {
-        log.info("📌 Iniciando mapeo Entity a DTO para devolver Orden");
+        log.info("📦 [MAPEO] Iniciando mapeo Entity → DTO (numeroOrden={})", ordenEntity.getNumeroOrden());
 
         OrdenResponseDTO ordenResponseDTO = new OrdenResponseDTO();
         ordenResponseDTO.setNumeroOrden(ordenEntity.getNumeroOrden());
@@ -94,8 +105,8 @@ public class OrdenMapper {
         ordenResponseDTO.setNombreProveedor(ordenEntity.getNombreProveedor());
         ordenResponseDTO.setTotalCompra(ordenEntity.getTotalCompra());
 
-        // 🔹 Mapear lista de detalles
-        if (ordenEntity.getDetalles() != null) {
+        // 📦 Mapeo lista de detalles
+        if (ordenEntity.getDetalles() != null && !ordenEntity.getDetalles().isEmpty()) {
             List<OrdenDetalleResponseDTO> detalles = new ArrayList<>();
 
             for (OrdenDetalleEntity detalle : ordenEntity.getDetalles()) {
@@ -105,16 +116,19 @@ public class OrdenMapper {
             ordenResponseDTO.setDetalles(detalles);
         }
 
-        // Fechas formateadas
+        // 🕓 Formateo de fechas
         ordenFormatearFecha.asignarFechasFormateadas(ordenEntity, ordenResponseDTO);
 
-        log.info("📌 Finalizando mapeo Entity a DTO para devolver Orden");
+        log.info("✅ [MAPEO] Mapeo completado Entity → DTO (numeroOrden={})", ordenEntity.getNumeroOrden());
 
         return ordenResponseDTO;
     }
 
+    /**
+     * 📦 Convierte un detalle de entidad en un DTO de respuesta.
+     */
     public OrdenDetalleResponseDTO mapDetalleEntityToResponse(OrdenDetalleEntity detalleEntity) {
-        log.info("📌 Mapeando Orden detalle: codigo={}, producto={}", detalleEntity.getCodigo(), detalleEntity.getProducto());
+        log.debug("📦 [MAPEO] Mapeando Orden detalle Entity → DTO: código={}, producto={}", detalleEntity.getCodigo(), detalleEntity.getProducto());
 
         OrdenDetalleResponseDTO responseDTO = new OrdenDetalleResponseDTO();
         responseDTO.setCodigo(detalleEntity.getCodigo());
@@ -131,23 +145,28 @@ public class OrdenMapper {
             responseDTO.setFechaActualizacion(ordenFormatearFecha.formatearFecha(detalleEntity.getFechaActualizacion()));
         }
 
-        log.info("📌 Orden detalle mapeado: codigo={}, producto={}", detalleEntity.getCodigo(), detalleEntity.getProducto());
+        log.debug("✅ [MAPEO] Orden detalle mapeado correctamente: código={}, producto={}", detalleEntity.getCodigo(), detalleEntity.getProducto());
 
         return responseDTO;
     }
 
+    /**
+     * 🔄 Define el estado inicial de una orden.
+     */
     public void mapEstadoOrden(OrdenEntity ordenEntity) {
-        log.info("📌 Actualizando estado de orden: {}", ordenEntity.getNumeroOrden());
+        log.info("🔄 [SOLICITUD] Estableciendo estado inicial de orden: {}", ordenEntity.getNumeroOrden());
 
-        // fijar fecha + estado
         ordenEntity.setFechaCreacion(LocalDateTime.now());
         ordenEntity.setEstadoOrden(ESTADO_ABIERTA);
 
-        log.info("📌 Finalizando actualización de estado de orden: {}", ordenEntity.getNumeroOrden());
+        log.debug("✅ [FINALIZADO] Estado establecido a '{}'", ESTADO_ABIERTA);
     }
 
+    /**
+     * ✏️ Actualiza una orden existente con nuevos datos del request.
+     */
     public void mapDetalleOrderExistente(OrdenEntity ordenEntity, OrdenRequestDTO requestDTO) {
-        log.info("📌 Actualizando detalles de orden existente: {}", ordenEntity.getNumeroOrden());
+        log.info("✏️ [SOLICITUD] Actualizando orden existente: {}", ordenEntity.getNumeroOrden());
 
         ordenEntity.setIdentificacionCliente(requestDTO.getIdentificacionCliente());
         ordenEntity.setNombreCliente(requestDTO.getNombreCliente());
@@ -157,6 +176,6 @@ public class OrdenMapper {
         ordenEntity.setNombreProveedor(requestDTO.getNombreProveedor());
         ordenEntity.setFechaActualizacion(LocalDateTime.now());
 
-        log.info("📌 Finalizando actualización de detalles de orden existente: {}", ordenEntity.getNumeroOrden());
+        log.info("✅ [FINALIZADO] Orden actualizada correctamente: {}", ordenEntity.getNumeroOrden());
     }
 }
