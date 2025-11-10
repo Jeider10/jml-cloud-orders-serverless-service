@@ -1,6 +1,9 @@
 package com.cloud.jml.config.jwt;
 
+import com.cloud.jml.utils.jwt.JwtUtil;
 import io.jsonwebtoken.Claims;
+import io.jsonwebtoken.ExpiredJwtException;
+import io.jsonwebtoken.JwtException;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -20,6 +23,12 @@ import java.util.List;
 @Component
 public class JwtRequestFilter extends OncePerRequestFilter {
 
+    private static final List<String> PUBLIC_ENDPOINTS = List.of(
+            "/role/",
+            "/usuario/",
+            "/authentication/"
+    );
+
     private final JwtUtil jwtUtil;
 
     public JwtRequestFilter(JwtUtil jwtUtil) {
@@ -30,31 +39,38 @@ public class JwtRequestFilter extends OncePerRequestFilter {
     @Override
     protected void doFilterInternal(@NotNull HttpServletRequest request, @NotNull HttpServletResponse response, @NotNull FilterChain chain) throws ServletException, IOException {
 
-//        String requestURI = request.getRequestURI();
-//
-//        // ✅ Excluir rutas rutas públicas que no requieren autenticación
-//        if (requestURI.startsWith("/role/")
-//                || requestURI.startsWith("/usuario/")
-//                || requestURI.startsWith("/authentication/")) {
-//            chain.doFilter(request, response);
-//            return;
-//        }
+        String requestURI = request.getRequestURI();
+
+        // ✅ Excluir rutas rutas públicas que no requieren autenticación
+        if (PUBLIC_ENDPOINTS.stream().anyMatch(requestURI::startsWith)) {
+            chain.doFilter(request, response);
+            return;
+        }
 
         String authHeader = request.getHeader("Authorization");
         if (authHeader != null && authHeader.startsWith("Bearer ")) {
 
             String token = authHeader.substring(7);
 
-            if (jwtUtil.validateToken(token)) {
+            try {
+                jwtUtil.validateToken(token);
 
-                String userName = jwtUtil.extractClaim(token, "userName");
-                String roleCode = mapRole(token);
+                String userName = jwtUtil.extractUserName(token);
+                String roleName = jwtUtil.extractRoleName(token);
 
                 // Autenticación con rol
                 UsernamePasswordAuthenticationToken authentication =
-                        new UsernamePasswordAuthenticationToken(userName, null, List.of(new SimpleGrantedAuthority(roleCode)));
+                        new UsernamePasswordAuthenticationToken(userName, null, List.of(new SimpleGrantedAuthority(roleName)));
 
                 SecurityContextHolder.getContext().setAuthentication(authentication);
+            } catch (ExpiredJwtException e) {
+                log.warn("⏰ Token expirado en filtro JWT.");
+                response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Token expirado");
+                return; // 🚫 corta el flujo
+            } catch (JwtException e) {
+                log.warn("❌ Token inválido en filtro JWT.");
+                response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Token inválido");
+                return; // 🚫 corta el flujo
             }
         }
 
@@ -72,7 +88,7 @@ public class JwtRequestFilter extends OncePerRequestFilter {
     }
 
     private String mapRoleCode(String token) {
-        Claims claims = jwtUtil.parseClaims(token);
+        Claims claims = jwtUtil.extractAllClaims(token);
 
         Object roleClaim = claims.get("roleCode");
         int roleCode;

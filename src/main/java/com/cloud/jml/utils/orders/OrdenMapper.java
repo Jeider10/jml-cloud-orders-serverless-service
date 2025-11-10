@@ -1,4 +1,4 @@
-package com.cloud.jml.utils;
+package com.cloud.jml.utils.orders;
 
 import com.cloud.jml.dto.OrdenDetalleRequestDTO;
 import com.cloud.jml.dto.OrdenDetalleResponseDTO;
@@ -27,9 +27,6 @@ public class OrdenMapper {
         log.info("🔥 OrdenMapper inicializado correctamente.");
     }
 
-    /**
-     * 📦 Convierte un DTO de solicitud de orden en una entidad lista para persistir.
-     */
     public OrdenEntity mapRequestDtoToEntity(OrdenRequestDTO ordenRequestDTO) {
         log.info("📦 [MAPEO] Iniciando mapeo DTO → Entity para creación de orden.");
 
@@ -68,9 +65,6 @@ public class OrdenMapper {
         return ordenEntity;
     }
 
-    /**
-     * 📦 Convierte un detalle de solicitud en su entidad correspondiente.
-     */
     public OrdenDetalleEntity mapDetalleRequestToEntity(OrdenDetalleRequestDTO detalleDTO) {
         log.debug("📦 [MAPEO] Mapeando detalle: código={}, producto={}", detalleDTO.getCodigo(), detalleDTO.getProducto());
 
@@ -87,9 +81,6 @@ public class OrdenMapper {
         return detalleEntity;
     }
 
-    /**
-     * 📦 Convierte una entidad de orden completa en un DTO de respuesta.
-     */
     public OrdenResponseDTO mapEntityToResponseDto(OrdenEntity ordenEntity) {
         log.info("📦 [MAPEO] Iniciando mapeo Entity → DTO (numeroOrden={})", ordenEntity.getNumeroOrden());
 
@@ -124,9 +115,6 @@ public class OrdenMapper {
         return ordenResponseDTO;
     }
 
-    /**
-     * 📦 Convierte un detalle de entidad en un DTO de respuesta.
-     */
     public OrdenDetalleResponseDTO mapDetalleEntityToResponse(OrdenDetalleEntity detalleEntity) {
         log.debug("📦 [MAPEO] Mapeando Orden detalle Entity → DTO: código={}, producto={}", detalleEntity.getCodigo(), detalleEntity.getProducto());
 
@@ -177,5 +165,25 @@ public class OrdenMapper {
         ordenEntity.setFechaActualizacion(LocalDateTime.now());
 
         log.info("✅ [FINALIZADO] Orden actualizada correctamente: {}", ordenEntity.getNumeroOrden());
+    }
+
+    /**
+     * ⚖️ Actualiza o elimina un detalle según la nueva cantidad.
+     */
+    public void actualizarOEliminarDetalle(OrdenEntity orden, OrdenDetalleEntity detalle, Long codigoProducto, long cantidadARestar, long nuevaCantidad) {
+        log.info("⚖️ [SOLICITUD] Procesando detalle: código={}, cantidadARestar={}", codigoProducto, cantidadARestar);
+
+        if (nuevaCantidad <= 0) {
+            // eliminar el detalle de la orden
+            orden.getDetalles().remove(detalle);
+            log.info("🗑️ [SOLICITUD] Detalle eliminado: código={} tras restar {}", codigoProducto, cantidadARestar);
+        } else {
+            // actualizar el detalle
+            detalle.setCantidad(nuevaCantidad);
+            detalle.setFechaActualizacion(LocalDateTime.now());
+            log.info("✏️ [FINALIZADO] Cantidad actualizada: código={}, nuevaCantidad={}", codigoProducto, nuevaCantidad);
+        }
+        // 📅 siempre actualizar la fecha de la orden
+        orden.setFechaActualizacion(LocalDateTime.now());
     }
 }

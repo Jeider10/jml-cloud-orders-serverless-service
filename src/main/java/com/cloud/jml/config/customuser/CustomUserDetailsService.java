@@ -1,4 +1,4 @@
-package com.cloud.jml.config;
+package com.cloud.jml.config.customuser;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Bean;
@@ -11,7 +11,6 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 @Configuration
 public class CustomUserDetailsService {
 
-//    private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
 
     public CustomUserDetailsService(PasswordEncoder passwordEncoder) {
@@ -32,28 +31,4 @@ public class CustomUserDetailsService {
 
         return userDetailsService;
     }
-
-//    @Override
-//    public UserDetails loadUserByUsername(String userName) {
-//        log.info("📌 Buscando usuario: {}", userName);
-//
-//        // Buscar el usuario
-//        Optional<UserEntity> userOpt = userRepository.findByUserName(userName);
-//
-//        if (userOpt.isEmpty()) {
-//            log.warn("⚠️ Usuario no encontrado: {}", userName);
-//            throw new UsernameNotFoundException("⚠️ Usuario no encontrado");
-//        }
-//
-//        UserEntity usuario = userOpt.get();
-//
-////        UserEntity usuario = userRepository.findByUserName(username)
-////                .orElseThrow(() -> new UsernameNotFoundException("Usuario no encontrado"));
-//
-//        return User.builder()
-//                .username(usuario.getUserName())
-//                .password(usuario.getPassword())
-//                .roles(usuario.getRoleName())
-//                .build();
-//    }
 }

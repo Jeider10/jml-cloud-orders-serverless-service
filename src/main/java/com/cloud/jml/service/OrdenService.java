@@ -9,8 +9,8 @@ import com.cloud.jml.exception.stock.StockInsuficienteException;
 import com.cloud.jml.model.OrdenDetalleEntity;
 import com.cloud.jml.model.OrdenEntity;
 import com.cloud.jml.repository.OrdenRepository;
-import com.cloud.jml.utils.OrdenMapper;
-import com.cloud.jml.utils.OrdenUtils;
+import com.cloud.jml.utils.orders.OrdenMapper;
+import com.cloud.jml.utils.orders.OrdenUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -134,7 +134,7 @@ public class OrdenService {
 
         // 🔹 7) Actualizar o eliminar detalle según corresponda
         log.info("🔧 [ACTUALIZACIÓN] Actualizando o eliminando detalle según cantidad resultante...");
-        ordenUtils.actualizarOEliminarDetalle(orden, detalle, codigoProducto, cantidadARestar, nuevaCantidad);
+        mapper.actualizarOEliminarDetalle(orden, detalle, codigoProducto, cantidadARestar, nuevaCantidad);
 
         // 🔹 8) Recalcular total después de restar/eliminar
         log.info("🔄 [RECALCULO] Recalculando total de la orden...");

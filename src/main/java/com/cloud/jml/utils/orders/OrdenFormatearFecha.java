@@ -1,4 +1,4 @@
-package com.cloud.jml.utils;
+package com.cloud.jml.utils.orders;
 
 import com.cloud.jml.dto.OrdenResponseDTO;
 import com.cloud.jml.model.OrdenEntity;
@@ -15,6 +15,29 @@ public class OrdenFormatearFecha {
 
     private static final DateTimeFormatter FORMATTER =
             DateTimeFormatter.ofPattern("d/M/yyyy, h:mm:ss a", Locale.of("es", "CO"));
+
+    public OrdenFormatearFecha() {
+        log.info("🔥 OrdenFormatearFecha inicializado correctamente.");
+    }
+
+    public void asignarFechasFormateadas(OrdenEntity ordenEntity, OrdenResponseDTO ordenResponseDTO) {
+        if (ordenEntity == null || ordenResponseDTO == null) {
+            log.warn("⚠️ Entidad o DTO nulos al intentar asignar fechas formateadas.");
+            return;
+        }
+
+        log.info("📦 Asignando fechas formateadas a la orden: {}", ordenEntity.getNumeroOrden());
+
+        // Fecha de creación
+        String fechaCreacion = formatearFecha(ordenEntity.getFechaCreacion());
+        ordenResponseDTO.setFechaCreacion(fechaCreacion);
+        log.debug("🕓 Fecha de creación asignada: {}", fechaCreacion);
+
+        // Fecha de actualización
+        String fechaActualizacion = formatearFecha(ordenEntity.getFechaActualizacion());
+        ordenResponseDTO.setFechaActualizacion(fechaActualizacion);
+        log.debug("🕓 Fecha de actualización asignada: {}", fechaActualizacion);
+    }
 
     /**
      * 🕒 Formatea una fecha LocalDateTime al formato colombiano:
@@ -37,28 +60,5 @@ public class OrdenFormatearFecha {
         log.info("🕓 Fecha formateada correctamente: {}", fechaFormateada);
 
         return fechaFormateada;
-    }
-
-    /**
-     * 🧩 Asigna las fechas formateadas (creación y actualización)
-     * desde la entidad a la respuesta DTO.
-     */
-    public void asignarFechasFormateadas(OrdenEntity ordenEntity, OrdenResponseDTO ordenResponseDTO) {
-        if (ordenEntity == null || ordenResponseDTO == null) {
-            log.warn("⚠️ Entidad o DTO nulos al intentar asignar fechas formateadas.");
-            return;
-        }
-
-        log.info("📦 Asignando fechas formateadas a la orden: {}", ordenEntity.getNumeroOrden());
-
-        // Fecha de creación
-        String fechaCreacion = formatearFecha(ordenEntity.getFechaCreacion());
-        ordenResponseDTO.setFechaCreacion(fechaCreacion);
-        log.debug("🕓 Fecha de creación asignada: {}", fechaCreacion);
-
-        // Fecha de actualización
-        String fechaActualizacion = formatearFecha(ordenEntity.getFechaActualizacion());
-        ordenResponseDTO.setFechaActualizacion(fechaActualizacion);
-        log.debug("🕓 Fecha de actualización asignada: {}", fechaActualizacion);
     }
 }

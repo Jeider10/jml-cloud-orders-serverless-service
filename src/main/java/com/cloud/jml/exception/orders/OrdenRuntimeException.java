@@ -12,4 +12,9 @@ public class OrdenRuntimeException extends RuntimeException {
         super(message);
         this.status = status;
     }
+
+    public OrdenRuntimeException(HttpStatus status, String message, Throwable cause) {
+        super(message, cause);
+        this.status = status;
+    }
 }

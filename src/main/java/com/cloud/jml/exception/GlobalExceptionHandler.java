@@ -21,7 +21,7 @@ public class GlobalExceptionHandler {
     public ResponseEntity<Map<String, Object>> handleOrdenErrors(OrdenRuntimeException ex) {
         return buildErrorResponse(
                 ex.getStatus(),
-                "📦 [ORDEN] Error en orden",
+                "🧾 [ORDEN] Error en orden",
                 ex.getMessage()
         );
     }

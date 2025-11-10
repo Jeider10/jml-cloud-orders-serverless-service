@@ -12,4 +12,9 @@ public class StockRuntimeException extends RuntimeException {
         super(message);
         this.status = status;
     }
+
+    public StockRuntimeException(HttpStatus status, String message, Throwable cause) {
+        super(message, cause);
+        this.status = status;
+    }
 }

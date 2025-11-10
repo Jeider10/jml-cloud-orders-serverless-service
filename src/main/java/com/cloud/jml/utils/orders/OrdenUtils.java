@@ -1,4 +1,4 @@
-package com.cloud.jml.utils;
+package com.cloud.jml.utils.orders;
 
 import com.cloud.jml.dto.OrdenRequestDTO;
 import com.cloud.jml.exception.orders.OrdenPersistenceException;
@@ -195,26 +195,6 @@ public class OrdenUtils {
             log.info("⚠️ [RETORNO] Cantidad actual no definida, se retorna 0");
             return 0L;
         }
-    }
-
-    /**
-     * ⚖️ Actualiza o elimina un detalle según la nueva cantidad.
-     */
-    public void actualizarOEliminarDetalle(OrdenEntity orden, OrdenDetalleEntity detalle, Long codigoProducto, long cantidadARestar, long nuevaCantidad) {
-        log.info("⚖️ [SOLICITUD] Procesando detalle: código={}, cantidadARestar={}", codigoProducto, cantidadARestar);
-
-        if (nuevaCantidad <= 0) {
-            // eliminar el detalle de la orden
-            orden.getDetalles().remove(detalle);
-            log.info("🗑️ [SOLICITUD] Detalle eliminado: código={} tras restar {}", codigoProducto, cantidadARestar);
-        } else {
-            // actualizar el detalle
-            detalle.setCantidad(nuevaCantidad);
-            detalle.setFechaActualizacion(LocalDateTime.now());
-            log.info("✏️ [FINALIZADO] Cantidad actualizada: código={}, nuevaCantidad={}", codigoProducto, nuevaCantidad);
-        }
-        // 📅 siempre actualizar la fecha de la orden
-        orden.setFechaActualizacion(LocalDateTime.now());
     }
 
     /**

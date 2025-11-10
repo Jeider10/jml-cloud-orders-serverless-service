@@ -12,7 +12,6 @@ import java.util.List;
 @Slf4j
 @RestController
 @RequestMapping("/ordenes-ventas")
-@CrossOrigin(origins = "http://localhost:8080")
 public class OrdenController {
 
     private final OrdenService ordenService;
