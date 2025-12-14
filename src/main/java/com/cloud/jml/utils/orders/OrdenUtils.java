@@ -84,6 +84,11 @@ public class OrdenUtils {
             ordenEntity.setNumeroOrden(UUID.randomUUID().toString());
         }
 
+        String numeroFactura = generarNumeroFactura(ordenEntity);
+        ordenEntity.setNumeroFactura(numeroFactura);
+
+        log.info("🧮 [SOLICITUD] Número de factura generado: {}", numeroFactura);
+
         mapper.mapEstadoOrden(ordenEntity);
 
         // asignar fechas de creación en detalles y enlace orden->detalle ya hecho en mapper
@@ -95,6 +100,26 @@ public class OrdenUtils {
         log.info("🆕 [FINALIZADO] Nueva orden creada: {}", ordenEntity.getNumeroOrden());
 
         return ordenEntity;
+    }
+
+    public String generarNumeroFactura(OrdenEntity ordenEntity) {
+        String numeroOrden = ordenEntity.getNumeroOrden();
+
+        // Encontrar el índice del primer guion (-)
+        // Si no encuentra el '-', indexOf devuelve -1, lo cual causaría un error en substring.
+        // Aunque se asume formato UUID, se agrega una pequeña validación básica para evitar errores.
+        int indiceGuion = numeroOrden.indexOf('-');
+
+        // Asegurarse de que el guion exista antes de intentar el substring
+        if (indiceGuion == -1) {
+            throw new IllegalArgumentException("El número de orden no contiene un guion y no es un UUID válido.");
+        }
+
+        // Extraer la subcadena antes del primer guion
+        String parteUUID = numeroOrden.substring(0, indiceGuion);
+
+        // Concatenar con la identificación del cliente y devolver
+        return ordenEntity.getIdentificacionCliente() + "-" + parteUUID;
     }
 
     /**
