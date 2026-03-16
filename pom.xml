@@ -7,26 +7,28 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>com.cloud.jml</groupId>
     <artifactId>jml-cloud-orders-serverless-service</artifactId>
-    <version>1.0-SNAPSHOT</version>
+    <version>1.0.0-SNAPSHOT</version>
 
     <!-- Usar spring-boot-starter-parent como parent -->
     <parent>
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-starter-parent</artifactId>
-        <version>3.5.6</version>
+        <version>4.0.3</version>
         <relativePath/> <!-- lookup parent from repository -->
     </parent>
 
     <properties>
-        <java.version>21</java.version>
+        <java.version>25</java.version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 
-        <maven-surefire-plugin.version>3.5.4</maven-surefire-plugin.version>
+        <maven-surefire-plugin.version>3.5.5</maven-surefire-plugin.version>
+        <maven-compiler-plugin.version>3.15.0</maven-compiler-plugin.version>
 
         <com.mysql.version>9.4.0</com.mysql.version>
-        <projectlombok.version>1.18.42</projectlombok.version>
+        <projectlombok.version>1.18.44</projectlombok.version>
         <jsonwebtoken.version>0.13.0</jsonwebtoken.version>
         <jetbrains.version>26.0.2-1</jetbrains.version>
+        <jfiglet.version>0.0.9</jfiglet.version>
         <ch.qos.logback.version>1.5.19</ch.qos.logback.version>
     </properties>
 
@@ -36,12 +38,12 @@
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-web</artifactId>
-            <exclusions>
-                <exclusion>
-                    <groupId>ch.qos.logback</groupId>
-                    <artifactId>logback-core</artifactId>
-                </exclusion>
-            </exclusions>
+<!--            <exclusions>-->
+<!--                <exclusion>-->
+<!--                    <groupId>ch.qos.logback</groupId>-->
+<!--                    <artifactId>logback-core</artifactId>-->
+<!--                </exclusion>-->
+<!--            </exclusions>-->
         </dependency>
 
         <!-- Starter para seguridad (Spring Security, autenticación, autorización) -->
@@ -98,11 +100,11 @@
         </dependency>
 
         <!-- Núcleo de Logback: framework de logging predeterminado en Spring Boot (maneja configuración, appenders y niveles de log) -->
-        <dependency>
-            <groupId>ch.qos.logback</groupId>
-            <artifactId>logback-core</artifactId>
-            <version>${ch.qos.logback.version}</version>
-        </dependency>
+<!--        <dependency>-->
+<!--            <groupId>ch.qos.logback</groupId>-->
+<!--            <artifactId>logback-core</artifactId>-->
+<!--            <version>${ch.qos.logback.version}</version>-->
+<!--        </dependency>-->
 
         <!-- Lombok: elimina boilerplate (getters, setters, constructores, builders, etc.) -->
         <dependency>
@@ -117,6 +119,14 @@
             <groupId>org.jetbrains</groupId>
             <artifactId>annotations</artifactId>
             <version>${jetbrains.version}</version>
+            <scope>compile</scope>
+        </dependency>
+
+        <!-- Genera ASCII grande automáticamente, como el banner de Spring Boot, pero con cualquier nombre que tú le pases -->
+        <dependency>
+            <groupId>com.github.lalyos</groupId>
+            <artifactId>jfiglet</artifactId>
+            <version>${jfiglet.version}</version>
             <scope>compile</scope>
         </dependency>
 
@@ -150,6 +160,32 @@
                     </execution>
                 </executions>
             </plugin>
+
+            <!-- Habilita anotacion de lombok -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <version>${maven-compiler-plugin.version}</version>
+                <configuration>
+                    <source>${java.version}</source>
+                    <target>${java.version}</target>
+                    <annotationProcessorPaths>
+                        <path>
+                            <groupId>org.projectlombok</groupId>
+                            <artifactId>lombok</artifactId>
+                            <version>${projectlombok.version}</version>
+                        </path>
+                    </annotationProcessorPaths>
+                </configuration>
+            </plugin>
         </plugins>
+
+        <!-- Pasar la versión del pom a Spring -->
+        <resources>
+            <resource>
+                <directory>src/main/resources</directory>
+                <filtering>true</filtering>
+            </resource>
+        </resources>
     </build>
 </project>

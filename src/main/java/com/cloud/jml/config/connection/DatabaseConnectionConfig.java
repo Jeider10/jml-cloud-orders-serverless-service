@@ -4,7 +4,7 @@ import com.cloud.jml.utils.connection.ConnectionPropertiesUtils;
 import com.cloud.jml.utils.connection.ConnectionUtils;
 import com.cloud.jml.utils.general.GeneralUtils;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.boot.web.embedded.tomcat.TomcatServletWebServerFactory;
+import org.springframework.boot.tomcat.servlet.TomcatServletWebServerFactory;
 import org.springframework.boot.web.server.WebServerFactoryCustomizer;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
