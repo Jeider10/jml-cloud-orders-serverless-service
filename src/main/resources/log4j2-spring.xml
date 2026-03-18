@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Configuration status="INFO">
+
+    <Properties>
+        <Property name="appName">jml-cloud-orders-serverless-service</Property>
+        <Property name="logPath">${sys:user.dir}/logs</Property>
+    </Properties>
+
+    <Appenders>
+
+        <RollingRandomAccessFile name="File"
+                                 fileName="${logPath}/${appName}.log"
+                                 filePattern="${logPath}/${appName}.%d{yyyy-MM-dd}-%i.log.gz">
+                                 <!-- Para eliminar el archivo fileName (append="false">) para no eliminar (append="true">) -->
+                                 append="false">
+
+            <PatternLayout>
+                <Pattern>%d{yyyy-MM-dd HH:mm:ss.SSS} %-5p [%t][%c{1}] %m%n</Pattern>
+            </PatternLayout>
+
+            <Policies>
+                <TimeBasedTriggeringPolicy interval="1"/>
+                <SizeBasedTriggeringPolicy size="50 MB"/>
+            </Policies>
+
+        </RollingRandomAccessFile>
+
+        <Console name="Console" target="SYSTEM_OUT">
+            <PatternLayout>
+                <Pattern>%d{yyyy-MM-dd HH:mm:ss.SSS} %-5p [%t][%c{1}] %m%n</Pattern>
+            </PatternLayout>
+        </Console>
+
+    </Appenders>
+
+    <Loggers>
+        <Root level="info">
+            <AppenderRef ref="File"/>
+            <AppenderRef ref="Console"/>
+        </Root>
+    </Loggers>
+
+</Configuration>

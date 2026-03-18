@@ -50,3 +50,4 @@ target
 *.class
 dependencies/
 .aws-sam
+logs/

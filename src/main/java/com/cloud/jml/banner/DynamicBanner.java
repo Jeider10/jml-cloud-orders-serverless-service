@@ -1,6 +1,8 @@
 package com.cloud.jml.banner;
 
 import com.github.lalyos.jfiglet.FigletFont;
+import org.fusesource.jansi.Ansi;
+import org.fusesource.jansi.AnsiConsole;
 import org.springframework.boot.Banner;
 import org.springframework.boot.SpringBootVersion;
 import org.springframework.core.env.Environment;
@@ -18,6 +20,8 @@ public class DynamicBanner implements Banner {
     @Override
     public void printBanner(Environment env, Class<?> sourceClass, PrintStream out) {
 
+        AnsiConsole.systemInstall();
+
         String version = env.getProperty("application.version", "unknown");
 
         try {
@@ -25,15 +29,22 @@ public class DynamicBanner implements Banner {
             String ascii = FigletFont.convertOneLine(microName.toUpperCase());
 
             out.println();
-            out.println(ascii);
-            out.println(":: " + microName + " :: (v" + version + ")");
-            out.println("Java " + System.getProperty("java.version")
-                    + " | Spring Boot " + SpringBootVersion.getVersion());
+            out.println(Ansi.ansi().fgMagenta().a(ascii).reset());
+
+            out.println(Ansi.ansi().fgMagenta()
+                    .a(":: Microservice :: (v" + version + ")")
+                    .reset());
+
+            out.println(Ansi.ansi().fgMagenta()
+                    .a("Java " + System.getProperty("java.version")
+                            + " | Spring Boot " + SpringBootVersion.getVersion())
+                    .reset());
+
             out.println();
 
         } catch (Exception e) {
 
-            out.println(microName + " v" + version);
+            out.println("=== " + microName + " (v" + version + ") ===");
 
         }
     }

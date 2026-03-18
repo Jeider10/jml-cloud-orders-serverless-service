@@ -1,14 +1,21 @@
 #server:
 #  port: 8085
 #
-#spring:
-#  application:
-#    name: jml-cloud-orders-serverless-service
+spring:
+  application:
+    name: jml-cloud-orders-serverless-service
 #  main:
 #    banner-mode: "console"
 #
 application:
   version: "@project.version@"
+
+#logging:
+#  file:
+#    name: logs/${spring.application.name}.log
+#  config: classpath:log4j2-spring.xml
+#  level:
+#    org.springframework: DEBUG
 
 #  datasource:
 #    url: jdbc:mysql://localhost:3306/application_table_db
