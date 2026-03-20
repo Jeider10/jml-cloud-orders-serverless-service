@@ -13,7 +13,7 @@ public class ConnectionPropertiesUtils {
 
     private String defaultUrl = "jdbc:mysql://localhost:3306/application_table_db";
     private String defaultUsername = "root";
-    private String defaultPassword = "";
+    private String defaultPassword = "root";
     private String driverClassName = "com.mysql.cj.jdbc.Driver";
     private int serverPort = 1085;
 }

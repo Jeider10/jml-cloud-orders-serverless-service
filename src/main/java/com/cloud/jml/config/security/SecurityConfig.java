@@ -34,8 +34,8 @@ public class SecurityConfig {
     }
 
     @Bean
-    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
-        String origins = generalUtils.getEnvOrDefault("URL_BASE_MICRO", "http://localhost:8080");
+    public SecurityFilterChain securityFilterChain(HttpSecurity http) {
+        String origins = generalUtils.getEnvOrDefault("URL_BASE_MICRO_FRONTEND", "http://localhost:8080");
         List<String> allowedOrigins = List.of(origins.split(","));
 
         http

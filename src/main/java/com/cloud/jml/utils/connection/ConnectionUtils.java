@@ -61,6 +61,30 @@ public class ConnectionUtils {
         config.setPassword(password);
         config.setDriverClassName(connectionPropertiesUtils.getDriverClassName());
 
+        // 🔥 OPTIMIZACIONES PARA MYSQL (MEJORAN RENDIMIENTO)
+        // 🔸 Cachea los PreparedStatements (reduce uso de CPU y mejora velocidad)
+        config.addDataSourceProperty("cachePrepStmts", "true");
+        // 🔸 Tamaño del cache de statements
+        config.addDataSourceProperty("prepStmtCacheSize", "250");
+        // 🔸 Longitud máxima de SQL que se cachea
+        config.addDataSourceProperty("prepStmtCacheSqlLimit", "2048");
+        // 🔸 Usa prepared statements del servidor
+        config.addDataSourceProperty("useServerPrepStmts", "true");
+        // 🔸 Mejora manejo de sesión local
+        config.addDataSourceProperty("useLocalSessionState", "true");
+        // 🔸 Optimiza inserts/batch (MUY importante para rendimiento)
+        config.addDataSourceProperty("rewriteBatchedStatements", "true");
+        // 🔸 Cachea metadata de resultados
+        config.addDataSourceProperty("cacheResultSetMetadata", "true");
+        // 🔸 Cachea configuración del servidor
+        config.addDataSourceProperty("cacheServerConfiguration", "true");
+        // 🔸 Reduce operaciones innecesarias de autocommit
+        config.addDataSourceProperty("elideSetAutoCommits", "true");
+        // 🔸 Desactiva métricas innecesarias (mejora rendimiento)
+        config.addDataSourceProperty("maintainTimeStats", "false");
+        // 🔥 TIMEOUT DE VALIDACIÓN (mejor control de conexiones)
+        config.setValidationTimeout(5000);
+
         // ⚙️ Pool de conexiones
         // 🔸 Define el número máximo de conexiones simultáneas que puede abrir el pool.
         config.setMaximumPoolSize(10);
@@ -68,6 +92,14 @@ public class ConnectionUtils {
         config.setMinimumIdle(2);
         // 🔸 Tiempo (en milisegundos) que una conexión inactiva puede permanecer abierta antes de cerrarse.
         config.setIdleTimeout(30000);
+        // 🔥 Tiempo máximo para obtener una conexión del pool
+        config.setConnectionTimeout(30000); // 5 min
+        // 🔥 Tiempo máximo de vida de una conexión (evita conexiones zombie)
+        config.setMaxLifetime(1800000); // 30 min
+        // 🔥 Mantiene viva la conexión (evita que MySQL la mate)
+        config.setKeepaliveTime(300000); // 5 min
+        // 🔸 Define si cada operación SQL se confirma automáticamente; útil para evitar inconsistencias fuera de transacciones gestionadas por Hibernate.
+        config.setAutoCommit(true);
         // 🔸 Nombre personalizado del pool de conexiones (solo para logs y monitoreo).
         config.setPoolName("JML-HikariPool");
 

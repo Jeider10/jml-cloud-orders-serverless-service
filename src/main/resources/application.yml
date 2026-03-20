@@ -4,6 +4,8 @@
 spring:
   application:
     name: jml-cloud-orders-serverless-service
+#  thymeleaf:
+#    enabled: false
 #  main:
 #    banner-mode: "console"
 #
