@@ -80,14 +80,13 @@ public class OrdenUtils {
         OrdenEntity ordenEntity = mapper.mapRequestDtoToEntity(requestDTO);
 
         // Generar UUID si el mapper no lo asignó
-        if (ordenEntity.getNumeroOrden() == null || ordenEntity.getNumeroOrden().isBlank()) {
-            ordenEntity.setNumeroOrden(UUID.randomUUID().toString());
+        if (ordenEntity.getNumeroFactura() == null || ordenEntity.getNumeroFactura().isBlank()) {
+
+            String numeroFactura = generarNumeroFactura(ordenEntity.getNumeroOrden());
+            ordenEntity.setNumeroFactura(numeroFactura);
+
+            log.info("🧮 [SOLICITUD] Número de factura generado: {}", numeroFactura);
         }
-
-        String numeroFactura = generarNumeroFactura(ordenEntity);
-        ordenEntity.setNumeroFactura(numeroFactura);
-
-        log.info("🧮 [SOLICITUD] Número de factura generado: {}", numeroFactura);
 
         mapper.mapEstadoOrden(ordenEntity);
 
@@ -102,24 +101,26 @@ public class OrdenUtils {
         return ordenEntity;
     }
 
-    public String generarNumeroFactura(OrdenEntity ordenEntity) {
-        String numeroOrden = ordenEntity.getNumeroOrden();
+    public String generarNumeroFactura(String numeroOrden) {
 
         // Encontrar el índice del primer guion (-)
         // Si no encuentra el '-', indexOf devuelve -1, lo cual causaría un error en substring.
         // Aunque se asume formato UUID, se agrega una pequeña validación básica para evitar errores.
-        int indiceGuion = numeroOrden.indexOf('-');
+        int primerGuion = numeroOrden.indexOf('-');
+        int segundoGuion = numeroOrden.indexOf('-', primerGuion + 1);
 
         // Asegurarse de que el guion exista antes de intentar el substring
-        if (indiceGuion == -1) {
+        if (primerGuion == -1 || segundoGuion == -1) {
             throw new IllegalArgumentException("El número de orden no contiene un guion y no es un UUID válido.");
         }
 
         // Extraer la subcadena antes del primer guion
-        String parteUUID = numeroOrden.substring(0, indiceGuion);
+        String parteUUID = numeroOrden.substring(0, segundoGuion);
+        log.info("📦 Numero de factura: {}", parteUUID);
 
         // Concatenar con la identificación del cliente y devolver
-        return ordenEntity.getIdentificacionCliente() + "-" + parteUUID;
+//        return ordenEntity.getIdentificacionCliente() + "-" + parteUUID;
+        return parteUUID;
     }
 
     /**

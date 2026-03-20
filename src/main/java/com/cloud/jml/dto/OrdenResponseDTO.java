@@ -19,10 +19,15 @@ public class OrdenResponseDTO {
     private String fechaCreacion;
     private String fechaActualizacion;
     private Long totalCompra;
+
     private Long identificacionCliente;
     private String nombreCliente;
+    private String apellidoCliente;
+
     private Long identificacionEmpleado;
     private String nombreEmpleado;
+    private String apellidoEmpleado;
+
     private Long identificacionProveedor;
     private String nombreProveedor;
 
