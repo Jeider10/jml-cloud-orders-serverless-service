@@ -8,7 +8,7 @@ import lombok.Setter;
 @Setter
 @Getter
 @NoArgsConstructor // Constructor sin argumentos
-@AllArgsConstructor // Constructor con todos los argumentoss
+@AllArgsConstructor // Constructor con todos los argumentos
 public class OrdenDetalleResponseDTO {
 
     private Long codigo;

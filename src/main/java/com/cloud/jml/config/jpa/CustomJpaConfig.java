@@ -1,7 +1,7 @@
 package com.cloud.jml.config.jpa;
 
-import jakarta.validation.constraints.NotNull;
 import lombok.extern.slf4j.Slf4j;
+import org.jetbrains.annotations.NotNull;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.boot.jpa.autoconfigure.JpaProperties;
@@ -16,7 +16,7 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 public class CustomJpaConfig {
 
     // ===============================
-    // 🔹 Configurar JPA programáticamente
+    // 🔹 Configurar JPA programaticamente
     // ===============================
     @Bean
     @ConfigurationProperties(prefix = "spring.jpa")

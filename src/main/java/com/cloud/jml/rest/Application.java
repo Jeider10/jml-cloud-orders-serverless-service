@@ -9,7 +9,8 @@ import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 import org.springframework.scheduling.annotation.EnableScheduling;
 
 @EnableScheduling
-@Slf4j@SpringBootApplication(scanBasePackages = "com.cloud.jml")
+@Slf4j
+@SpringBootApplication(scanBasePackages = "com.cloud.jml")
 @EnableJpaRepositories(basePackages = "com.cloud.jml")
 @EntityScan(basePackages = "com.cloud.jml")
 public class Application {

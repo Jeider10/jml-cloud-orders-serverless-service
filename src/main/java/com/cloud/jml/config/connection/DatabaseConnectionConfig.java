@@ -19,8 +19,6 @@ public class DatabaseConnectionConfig {
     private final ConnectionPropertiesUtils connectionPropertiesUtils;
     private final ConnectionUtils connectionUtils;
     private final GeneralUtils generalUtils;
-    // 🔒 Cache interno (solo se crea una vez)
-    private DataSource cachedDataSource;
 
     public DatabaseConnectionConfig(ConnectionPropertiesUtils connectionPropertiesUtils, ConnectionUtils connectionUtils, GeneralUtils generalUtils) {
         this.connectionPropertiesUtils = connectionPropertiesUtils;
@@ -30,7 +28,7 @@ public class DatabaseConnectionConfig {
     }
 
     /**
-     * 🔹 Construye y cachea la conexión a BD sin depender de application.yml.
+     * 🔹 Construye la conexion a BD sin depender de application.yml.
      * Prioridad:
      * 1️⃣ Variables de entorno (DB_URL, DB_USERNAME, DB_PASSWORD)
      * 2️⃣ Valores por defecto (para desarrollo local)
@@ -38,12 +36,7 @@ public class DatabaseConnectionConfig {
     @Bean
     @Primary
     public DataSource dataSource() {
-        if (cachedDataSource != null) {
-            log.info("♻️ Reutilizando conexión a base de datos previamente inicializada.");
-            return cachedDataSource;
-        }
-
-        log.info("🔹 Inicializando conexión a base de datos...");
+        log.info("🔹 Inicializando conexion a base de datos...");
 
         // 1️⃣ Resolver URL
         String url = generalUtils.getEnvOrDefault("DB_URL", connectionPropertiesUtils.getDefaultUrl());
@@ -55,10 +48,11 @@ public class DatabaseConnectionConfig {
         String password = generalUtils.getEnvOrDefault("DB_PASSWORD", connectionPropertiesUtils.getDefaultPassword());
 
         // 4️⃣ Crear el DataSource con Hikari (pool de conexiones eficiente)
-        cachedDataSource = connectionUtils.buildDataSource(url, username, password);
+        DataSource dataSource = connectionUtils.buildDataSource(url, username, password);
 
-        log.info("✅ Conexión a base de datos configurada correctamente: {}", url);
-        return cachedDataSource;
+        log.info("✅ Conexion a base de datos configurada correctamente: {}", url);
+
+        return dataSource;
     }
 
     @Bean

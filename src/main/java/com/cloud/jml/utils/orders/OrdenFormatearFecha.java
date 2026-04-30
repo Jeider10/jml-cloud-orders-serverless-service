@@ -28,20 +28,20 @@ public class OrdenFormatearFecha {
 
         log.info("📦 Asignando fechas formateadas a la orden: {}", ordenEntity.getNumeroOrden());
 
-        // Fecha de creación
+        // Fecha de creacion
         String fechaCreacion = formatearFecha(ordenEntity.getFechaCreacion());
         ordenResponseDTO.setFechaCreacion(fechaCreacion);
-        log.debug("🕓 Fecha de creación asignada: {}", fechaCreacion);
+        log.debug("🕓 Fecha de creacion asignada: {}", fechaCreacion);
 
-        // Fecha de actualización
+        // Fecha de actualizacion
         String fechaActualizacion = formatearFecha(ordenEntity.getFechaActualizacion());
         ordenResponseDTO.setFechaActualizacion(fechaActualizacion);
-        log.debug("🕓 Fecha de actualización asignada: {}", fechaActualizacion);
+        log.debug("🕓 Fecha de actualizacion asignada: {}", fechaActualizacion);
     }
 
     /**
-     * 🕒 Formatea una fecha LocalDateTime al formato colombiano:
-     * Ejemplo → 18/10/2025, 2:35:45 p.m.
+     * Formatea una fecha LocalDateTime al formato colombiano:
+     * Ejemplo: 18/10/2025, 2:35:45 p.m.
      */
     public String formatearFecha(LocalDateTime fecha) {
         if (fecha == null) {

@@ -7,7 +7,7 @@ public class OrdenNoEncontradaException extends OrdenRuntimeException {
     public OrdenNoEncontradaException(String numeroOrden) {
         super(
                 HttpStatus.NOT_FOUND,
-                "❌ [CONSULTA] No se encontró ninguna orden con el número: " + numeroOrden
+                "❌ [CONSULTA] No se encontro ninguna orden con el numero: " + numeroOrden
         );
     }
 }

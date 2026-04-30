@@ -24,9 +24,10 @@ import java.util.List;
 public class JwtRequestFilter extends OncePerRequestFilter {
 
     private static final List<String> PUBLIC_ENDPOINTS = List.of(
-            "/role/",
+            "/roles/",
             "/usuario/",
-            "/authentication/"
+            "/authentication/",
+            "/uploads/"
     );
 
     private final JwtUtil jwtUtil;
@@ -41,7 +42,7 @@ public class JwtRequestFilter extends OncePerRequestFilter {
 
         String requestURI = request.getRequestURI();
 
-        // ✅ Excluir rutas rutas públicas que no requieren autenticación
+        // ✅ Excluir rutas rutas publicas que no requieren autenticacion
         if (PUBLIC_ENDPOINTS.stream().anyMatch(requestURI::startsWith)) {
             chain.doFilter(request, response);
             return;
@@ -58,7 +59,7 @@ public class JwtRequestFilter extends OncePerRequestFilter {
                 String userName = jwtUtil.extractUserName(token);
                 String roleName = jwtUtil.extractRoleName(token);
 
-                // Autenticación con rol
+                // Autenticacion con rol
                 UsernamePasswordAuthenticationToken authentication =
                         new UsernamePasswordAuthenticationToken(userName, null, List.of(new SimpleGrantedAuthority(roleName)));
 
@@ -68,8 +69,8 @@ public class JwtRequestFilter extends OncePerRequestFilter {
                 response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Token expirado");
                 return; // 🚫 corta el flujo
             } catch (JwtException e) {
-                log.warn("❌ Token inválido en filtro JWT.");
-                response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Token inválido");
+                log.warn("❌ Token invalido en filtro JWT.");
+                response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Token invalido");
                 return; // 🚫 corta el flujo
             }
         }
@@ -77,7 +78,7 @@ public class JwtRequestFilter extends OncePerRequestFilter {
         chain.doFilter(request, response);
     }
 
-    // Mapeo del código numérico a nombre de rol para Spring Security
+    // Mapeo del codigo numerico a nombre de rol para Spring Security
     private String mapRole(String token) {
         Integer roleCode = jwtUtil.extractRoleCode(token);
         return switch (roleCode) {

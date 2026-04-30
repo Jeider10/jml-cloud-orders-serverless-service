@@ -7,7 +7,7 @@ public class OrdenPorClienteNoEncontradaException extends OrdenRuntimeException 
     public OrdenPorClienteNoEncontradaException(Long identificacionCliente) {
         super(
                 HttpStatus.NOT_FOUND,
-                "❌ [CONSULTA] No se encontró ninguna orden asociada al cliente con identificación: " + identificacionCliente
+                "❌ [CONSULTA] No se encontro ninguna orden asociada al cliente con identificacion: " + identificacionCliente
         );
     }
 }

@@ -5,26 +5,26 @@ import org.springframework.http.HttpStatus;
 public class OrdenDeletionException extends OrdenRuntimeException {
 
     public OrdenDeletionException(String message) {
-        super(HttpStatus.INTERNAL_SERVER_ERROR, "🗑️ [ELIMINACIÓN] " + message);
+        super(HttpStatus.INTERNAL_SERVER_ERROR, "🗑️ [ELIMINACION] " + message);
     }
 
     public OrdenDeletionException(String message, Throwable cause) {
         super(
                 HttpStatus.INTERNAL_SERVER_ERROR,
-                "🗑️ [ELIMINACIÓN] " + message +
+                "🗑️ [ELIMINACION] " + message +
                         (cause != null ? " | 💥 Causa: " + cause.getMessage() : "")
         );
     }
 
-    // 🔒 Violación de integridad referencial (por constraints o dependencias)
+    // Violacion de integridad referencial (por constraints o dependencias)
     public static OrdenDeletionException integrityViolation(Throwable cause) {
         return new OrdenDeletionException(
-                "❌ [INTEGRIDAD] No se pudo eliminar la orden debido a una violación de integridad referencial.",
+                "❌ [INTEGRIDAD] No se pudo eliminar la orden debido a una violacion de integridad referencial.",
                 cause
         );
     }
 
-    // ⚙️ Error de acceso a datos
+    // Error de acceso a datos
     public static OrdenDeletionException dataAccessError(Throwable cause) {
         return new OrdenDeletionException(
                 "❌ [DATOS] Error de acceso a la base de datos al intentar eliminar la orden.",
@@ -32,10 +32,10 @@ public class OrdenDeletionException extends OrdenRuntimeException {
         );
     }
 
-    // 💥 Error inesperado
+    // Error inesperado
     public static OrdenDeletionException unexpected(Throwable cause) {
         return new OrdenDeletionException(
-                "💥 [INESPERADO] Ocurrió un error inesperado al intentar eliminar la orden.",
+                "💥 [INESPERADO] Ocurrio un error inesperado al intentar eliminar la orden.",
                 cause
         );
     }

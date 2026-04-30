@@ -10,9 +10,9 @@
 
         <RollingRandomAccessFile name="File"
                                  fileName="${logPath}/${appName}.log"
-                                 filePattern="${logPath}/${appName}.%d{yyyy-MM-dd}-%i.log.gz">
-                                 <!-- Para eliminar el archivo fileName (append="false">) para no eliminar (append="true">) -->
+                                 filePattern="${logPath}/${appName}.%d{yyyy-MM-dd}-%i.log.gz"
                                  append="false">
+            <!-- Para eliminar el archivo fileName (append="false">) para no eliminar (append="true">) -->
 
             <PatternLayout>
                 <Pattern>%d{yyyy-MM-dd HH:mm:ss.SSS} %-5p [%t][%c{1}] %m%n</Pattern>

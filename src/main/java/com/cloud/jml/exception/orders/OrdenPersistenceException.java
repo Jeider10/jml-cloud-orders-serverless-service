@@ -16,15 +16,15 @@ public class OrdenPersistenceException extends OrdenRuntimeException {
         );
     }
 
-    // 🔒 Violación de integridad (constraint, duplicado, etc.) al guardar
+    // 🔒 Violacion de integridad (constraint, duplicado, etc.) al guardar
     public static OrdenPersistenceException integrityViolation(Throwable cause) {
         return new OrdenPersistenceException(
-                "❌ [INTEGRIDAD] Violación de integridad referencial al guardar la orden.",
+                "❌ [INTEGRIDAD] Violacion de integridad referencial al guardar la orden.",
                 cause
         );
     }
 
-    // ⚙️ Error técnico de acceso a datos
+    // ⚙️ Error tecnico de acceso a datos
     public static OrdenPersistenceException dataAccessError(Throwable cause) {
         return new OrdenPersistenceException(
                 "⚙️ [DATOS] Error de acceso a la base de datos al intentar guardar la orden.",

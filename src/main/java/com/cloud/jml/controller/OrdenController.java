@@ -3,6 +3,7 @@ package com.cloud.jml.controller;
 import com.cloud.jml.dto.OrdenRequestDTO;
 import com.cloud.jml.dto.OrdenResponseDTO;
 import com.cloud.jml.service.OrdenService;
+import jakarta.validation.Valid;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -23,18 +24,18 @@ public class OrdenController {
 
     @GetMapping("/list/all")
     public ResponseEntity<List<OrdenResponseDTO>> listarTodasLasOrdenes() {
-        log.info("📥 [SOLICITUD] Listar todas las órdenes de venta");
+        log.info("📥 [SOLICITUD] Listar todas las ordenes de venta");
 
         List<OrdenResponseDTO> ordenes = ordenService.listarTodasLasOrdenes();
 
-        log.info("📤 [RESPUESTA] Se retornan {} órdenes de venta", ordenes.size());
+        log.info("📤 [RESPUESTA] Se retornan {} ordenes de venta", ordenes.size());
 
         return ResponseEntity.ok(ordenes);
     }
 
     @PostMapping("/register")
-    public ResponseEntity<OrdenResponseDTO> crearOrdenDeVenta(@RequestBody OrdenRequestDTO ordenRequestDTO) {
-        log.info("📥 [SOLICITUD] Creación o actualización de orden de venta para cliente: {}", ordenRequestDTO.getNombreCliente());
+    public ResponseEntity<OrdenResponseDTO> crearOrdenDeVenta(@Valid @RequestBody OrdenRequestDTO ordenRequestDTO) {
+        log.info("📥 [SOLICITUD] Creacion o actualizacion de orden de venta para cliente: {}", ordenRequestDTO.getNombreCliente());
 
         OrdenResponseDTO crearOrdenVentaResponse = ordenService.crearOrdenDeVenta(ordenRequestDTO);
 
@@ -60,22 +61,22 @@ public class OrdenController {
 
     @PatchMapping("/cliente/orden/cerrar/{identificacionCliente}")
     public ResponseEntity<OrdenResponseDTO> cerrarOrdenPorCliente(@PathVariable Long identificacionCliente) {
-        log.info("📥 [SOLICITUD] Solicitud para cerrar orden del cliente con identificación: {}", identificacionCliente);
+        log.info("📥 [SOLICITUD] Solicitud para cerrar orden del cliente con identificacion: {}", identificacionCliente);
 
         OrdenResponseDTO dto = ordenService.cerrarOrdenPorCliente(identificacionCliente);
 
-        log.info("📤 [RESPUESTA] Orden cerrada exitosamente para cliente con identificación: {}", identificacionCliente);
+        log.info("📤 [RESPUESTA] Orden cerrada exitosamente para cliente con identificacion: {}", identificacionCliente);
 
         return ResponseEntity.ok(dto);
     }
 
     @GetMapping("/list/estado")
     public ResponseEntity<List<OrdenResponseDTO>> listarOrdenesPorEstado(@RequestParam("estado") String estadoOrden) {
-        log.info("📥 [SOLICITUD] Solicitud para listar órdenes con estado: {}", estadoOrden);
+        log.info("📥 [SOLICITUD] Solicitud para listar ordenes con estado: {}", estadoOrden);
 
         List<OrdenResponseDTO> ordenes = ordenService.listarOrdenesPorEstado(estadoOrden);
 
-        log.info("📤 [RESPUESTA] Se retornan {} órdenes con estado: {}", ordenes.size(), estadoOrden);
+        log.info("📤 [RESPUESTA] Se retornan {} ordenes con estado: {}", ordenes.size(), estadoOrden);
 
         return ResponseEntity.ok(ordenes);
     }
@@ -85,25 +86,25 @@ public class OrdenController {
             @RequestParam("cliente") Long identificacionCliente,
             @RequestParam("estado") String estadoOrden) {
 
-        log.info("📥 [SOLICITUD] Solicitud para listar órdenes del cliente: {} con estado: {}", identificacionCliente, estadoOrden);
+        log.info("📥 [SOLICITUD] Solicitud para listar ordenes del cliente: {} con estado: {}", identificacionCliente, estadoOrden);
 
         List<OrdenResponseDTO> ordenes = ordenService.listarOrdenesPorClienteYEstado(identificacionCliente, estadoOrden);
 
-        log.info("📤 [RESPUESTA] Se retornan {} órdenes del cliente: {} con estado: {}", ordenes.size(), identificacionCliente, estadoOrden);
+        log.info("📤 [RESPUESTA] Se retornan {} ordenes del cliente: {} con estado: {}", ordenes.size(), identificacionCliente, estadoOrden);
 
         return ResponseEntity.ok(ordenes);
     }
 
     @DeleteMapping("/delete/{numeroOrden}")
     public ResponseEntity<Void> eliminarOrdenCliente(
-            @PathVariable("numeroOrden") String numeroOrden,
+            @PathVariable String numeroOrden,
             @RequestParam("cliente") Long identificacionCliente) {
 
-        log.info("📥 [SOLICITUD] Solicitud para eliminar orden -> númeroOrden: {}, cliente: {}", numeroOrden, identificacionCliente);
+        log.info("📥 [SOLICITUD] Solicitud para eliminar orden -> numeroOrden: {}, cliente: {}", numeroOrden, identificacionCliente);
 
         ordenService.eliminarOrdenCliente(numeroOrden, identificacionCliente);
 
-        log.info("📤 [RESPUESTA] Orden eliminada exitosamente -> númeroOrden: {}, cliente: {}", numeroOrden, identificacionCliente);
+        log.info("📤 [RESPUESTA] Orden eliminada exitosamente -> numeroOrden: {}, cliente: {}", numeroOrden, identificacionCliente);
 
         return ResponseEntity.ok().build();
     }

@@ -33,7 +33,7 @@ public class JwtUtil {
         log.info("🔑 Extrayendo nombre de usuario del token JWT.");
 
         String usuario = extractClaimValue(token, USUARIO, String.class);
-        log.info("✅ Nombre de usuario extraído correctamente: {}", usuario);
+        log.info("✅ Nombre de usuario extraido correctamente: {}", usuario);
 
         return usuario;
     }
@@ -42,7 +42,7 @@ public class JwtUtil {
         log.info("🔑 Extrayendo roleCode del token JWT.");
 
         Integer roleCode = extractClaimValue(token, "roleCode", Integer.class);
-        log.info("✅ roleCode extraído correctamente: {}", roleCode);
+        log.info("✅ roleCode extraido correctamente: {}", roleCode);
 
         return roleCode;
     }
@@ -51,7 +51,7 @@ public class JwtUtil {
         log.info("🔑 Extrayendo roleName del token JWT.");
 
         String roleName = extractClaimValue(token, "roleName", String.class);
-        log.info("✅ roleName extraído correctamente: {}", roleName);
+        log.info("✅ roleName extraido correctamente: {}", roleName);
 
         return roleName;
     }
@@ -60,7 +60,7 @@ public class JwtUtil {
         log.info("🔑 Extrayendo JTI del token JWT.");
 
         String jti = extractClaimValue(token, "jti", String.class);
-        log.info("✅ JTI extraído correctamente: {}", jti);
+        log.info("✅ JTI extraido correctamente: {}", jti);
 
         return jti;
     }
@@ -69,14 +69,14 @@ public class JwtUtil {
         log.info("🔑 Extrayendo claim '{}' del token JWT.", claimKey);
         try {
             T t = extractAllClaims(token).get(claimKey, type);
-            log.info("✅ Claim '{}' extraído correctamente: {}", claimKey, t);
+            log.info("✅ Claim '{}' extraido correctamente: {}", claimKey, t);
             return t;
         } catch (ExpiredJwtException e) {
             log.warn("⚠️ Token expirado: {}", e.getMessage());
             throw e;
         } catch (JwtException e) {
             log.error("❌ Error al extraer claim '{}': {}", claimKey, e.getMessage());
-            throw new JwtException("Token inválido o corrupto", e);
+            throw new JwtException("Token invalido o corrupto", e);
         }
     }
 
@@ -89,7 +89,7 @@ public class JwtUtil {
                 .parseSignedClaims(token)
                 .getPayload();
 
-        log.info("✅ Claims extraídos correctamente.");
+        log.info("✅ Claims extraidos correctamente.");
 
         return claims;
     }
@@ -104,21 +104,21 @@ public class JwtUtil {
 
             Claims claims = claimsJws.getPayload();
 
-            // ⏰ Verificar expiración manualmente (aunque JJWT ya lo valida)
+            // ⏰ Verificar expiracion manualmente (aunque JJWT ya lo valida)
             if (claims.getExpiration().before(new Date())) {
                 String msg = "Token expirado para el usuario: " + claims.get(USUARIO);
                 log.warn("⏰ {}", msg);
                 throw new ExpiredJwtException(null, claims, msg);
             }
 
-            log.info("✅ Token válido para el usuario: {}", claims.get(USUARIO));
+            log.info("✅ Token valido para el usuario: {}", claims.get(USUARIO));
 
         } catch (ExpiredJwtException e) {
             log.warn("⏰ Token expirado: {}", e.getMessage());
-            throw e; // ⚠️ Propaga la excepción real (será manejada como 401)
+            throw e; // ⚠️ Propaga la excepcion real (sera manejada como 401)
         } catch (JwtException | IllegalArgumentException e) {
-            log.error("❌ Token inválido o corrupto: {}", e.getMessage());
-            throw new JwtException("Token inválido o corrupto", e);
+            log.error("❌ Token invalido o corrupto: {}", e.getMessage());
+            throw new JwtException("Token invalido o corrupto", e);
         }
     }
 }

@@ -28,7 +28,7 @@ public class OrdenMapper {
     }
 
     public OrdenEntity mapRequestDtoToEntity(OrdenRequestDTO ordenRequestDTO) {
-        log.info("📦 [MAPEO] Iniciando mapeo DTO → Entity para creación de orden.");
+        log.info("📦 [MAPEO] Iniciando mapeo DTO -> Entity para creacion de orden.");
 
         OrdenEntity ordenEntity = new OrdenEntity();
 
@@ -46,7 +46,7 @@ public class OrdenMapper {
         ordenEntity.setNombreProveedor(ordenRequestDTO.getNombreProveedor());
         ordenEntity.setFechaCreacion(LocalDateTime.now());
 
-        // 📦 Mapeo lista de detalles
+        // Mapeo lista de detalles
         if (ordenRequestDTO.getDetalles() != null && !ordenRequestDTO.getDetalles().isEmpty()) {
             List<OrdenDetalleEntity> detalles = new ArrayList<>();
 
@@ -59,16 +59,16 @@ public class OrdenMapper {
 
             ordenEntity.setDetalles(detalles);
         } else {
-            log.warn("⚠️ [VALIDACIÓN] La orden no contiene detalles asociados (numeroOrden={}).", numeroOrden);
+            log.warn("⚠️ [VALIDACION] La orden no contiene detalles asociados (numeroOrden={}).", numeroOrden);
         }
 
-        log.info("✅ [MAPEO] Mapeo completado DTO → Entity (numeroOrden={})", numeroOrden);
+        log.info("✅ [MAPEO] Mapeo completado DTO -> Entity (numeroOrden={})", numeroOrden);
 
         return ordenEntity;
     }
 
     public OrdenDetalleEntity mapDetalleRequestToEntity(OrdenDetalleRequestDTO detalleDTO) {
-        log.debug("📦 [MAPEO] Mapeando detalle: código={}, producto={}", detalleDTO.getCodigo(), detalleDTO.getProducto());
+        log.debug("📦 [MAPEO] Mapeando detalle: codigo={}, producto={}", detalleDTO.getCodigo(), detalleDTO.getProducto());
 
         OrdenDetalleEntity detalleEntity = new OrdenDetalleEntity();
 
@@ -78,13 +78,13 @@ public class OrdenMapper {
         detalleEntity.setCantidad(detalleDTO.getCantidad());
         detalleEntity.setPrecio(detalleDTO.getPrecio());
 
-        log.debug("✅ [MAPEO] Detalle mapeado correctamente: código={}, producto={}", detalleDTO.getCodigo(), detalleDTO.getProducto());
+        log.debug("✅ [MAPEO] Detalle mapeado correctamente: codigo={}, producto={}", detalleDTO.getCodigo(), detalleDTO.getProducto());
 
         return detalleEntity;
     }
 
     public OrdenResponseDTO mapEntityToResponseDto(OrdenEntity ordenEntity) {
-        log.info("📦 [MAPEO] Iniciando mapeo Entity → DTO (numeroOrden={})", ordenEntity.getNumeroOrden());
+        log.info("📦 [MAPEO] Iniciando mapeo Entity -> DTO (numeroOrden={})", ordenEntity.getNumeroOrden());
 
         OrdenResponseDTO ordenResponseDTO = new OrdenResponseDTO();
         ordenResponseDTO.setNumeroOrden(ordenEntity.getNumeroOrden());
@@ -99,8 +99,9 @@ public class OrdenMapper {
         ordenResponseDTO.setIdentificacionProveedor(ordenEntity.getIdentificacionProveedor());
         ordenResponseDTO.setNombreProveedor(ordenEntity.getNombreProveedor());
         ordenResponseDTO.setTotalCompra(ordenEntity.getTotalCompra());
+        ordenResponseDTO.setCufe(ordenEntity.getCufe());
 
-        // 📦 Mapeo lista de detalles
+        // Mapeo lista de detalles
         if (ordenEntity.getDetalles() != null && !ordenEntity.getDetalles().isEmpty()) {
             List<OrdenDetalleResponseDTO> detalles = new ArrayList<>();
 
@@ -111,16 +112,16 @@ public class OrdenMapper {
             ordenResponseDTO.setDetalles(detalles);
         }
 
-        // 🕓 Formateo de fechas
+        // Formateo de fechas
         ordenFormatearFecha.asignarFechasFormateadas(ordenEntity, ordenResponseDTO);
 
-        log.info("✅ [MAPEO] Mapeo completado Entity → DTO (numeroOrden={})", ordenEntity.getNumeroOrden());
+        log.info("✅ [MAPEO] Mapeo completado Entity -> DTO (numeroOrden={})", ordenEntity.getNumeroOrden());
 
         return ordenResponseDTO;
     }
 
     public OrdenDetalleResponseDTO mapDetalleEntityToResponse(OrdenDetalleEntity detalleEntity) {
-        log.debug("📦 [MAPEO] Mapeando Orden detalle Entity → DTO: código={}, producto={}", detalleEntity.getCodigo(), detalleEntity.getProducto());
+        log.debug("📦 [MAPEO] Mapeando Orden detalle Entity -> DTO: codigo={}, producto={}", detalleEntity.getCodigo(), detalleEntity.getProducto());
 
         OrdenDetalleResponseDTO responseDTO = new OrdenDetalleResponseDTO();
         responseDTO.setCodigo(detalleEntity.getCodigo());
@@ -137,13 +138,13 @@ public class OrdenMapper {
             responseDTO.setFechaActualizacion(ordenFormatearFecha.formatearFecha(detalleEntity.getFechaActualizacion()));
         }
 
-        log.debug("✅ [MAPEO] Orden detalle mapeado correctamente: código={}, producto={}", detalleEntity.getCodigo(), detalleEntity.getProducto());
+        log.debug("✅ [MAPEO] Orden detalle mapeado correctamente: codigo={}, producto={}", detalleEntity.getCodigo(), detalleEntity.getProducto());
 
         return responseDTO;
     }
 
     /**
-     * 🔄 Define el estado inicial de una orden.
+     * Define el estado inicial de una orden.
      */
     public void mapEstadoOrden(OrdenEntity ordenEntity) {
         log.info("🔄 [SOLICITUD] Estableciendo estado inicial de orden: {}", ordenEntity.getNumeroOrden());
@@ -155,7 +156,7 @@ public class OrdenMapper {
     }
 
     /**
-     * ✏️ Actualiza una orden existente con nuevos datos del request.
+     * Actualiza una orden existente con nuevos datos del request.
      */
     public void mapDetalleOrderExistente(OrdenEntity ordenEntity, OrdenRequestDTO requestDTO) {
         log.info("✏️ [SOLICITUD] Actualizando orden existente: {}", ordenEntity.getNumeroOrden());
@@ -174,22 +175,22 @@ public class OrdenMapper {
     }
 
     /**
-     * ⚖️ Actualiza o elimina un detalle según la nueva cantidad.
+     * Actualiza o elimina un detalle segun la nueva cantidad.
      */
     public void actualizarOEliminarDetalle(OrdenEntity orden, OrdenDetalleEntity detalle, Long codigoProducto, long cantidadARestar, long nuevaCantidad) {
-        log.info("⚖️ [SOLICITUD] Procesando detalle: código={}, cantidadARestar={}", codigoProducto, cantidadARestar);
+        log.info("⚖️ [SOLICITUD] Procesando detalle: codigo={}, cantidadARestar={}", codigoProducto, cantidadARestar);
 
         if (nuevaCantidad <= 0) {
             // eliminar el detalle de la orden
             orden.getDetalles().remove(detalle);
-            log.info("🗑️ [SOLICITUD] Detalle eliminado: código={} tras restar {}", codigoProducto, cantidadARestar);
+            log.info("🗑️ [SOLICITUD] Detalle eliminado: codigo={} tras restar {}", codigoProducto, cantidadARestar);
         } else {
             // actualizar el detalle
             detalle.setCantidad(nuevaCantidad);
             detalle.setFechaActualizacion(LocalDateTime.now());
-            log.info("✏️ [FINALIZADO] Cantidad actualizada: código={}, nuevaCantidad={}", codigoProducto, nuevaCantidad);
+            log.info("✏️ [FINALIZADO] Cantidad actualizada: codigo={}, nuevaCantidad={}", codigoProducto, nuevaCantidad);
         }
-        // 📅 siempre actualizar la fecha de la orden
+        // siempre actualizar la fecha de la orden
         orden.setFechaActualizacion(LocalDateTime.now());
     }
 }

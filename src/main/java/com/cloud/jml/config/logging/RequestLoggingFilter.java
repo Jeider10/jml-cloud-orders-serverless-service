@@ -62,7 +62,7 @@ public class RequestLoggingFilter extends OncePerRequestFilter {
                 String prettyJson = mapper.writeValueAsString(json);
                 logMessage.append("\n").append(prettyJson);
             } catch (Exception e) {
-                // Si no es JSON válido
+                // Si no es JSON valido
                 logMessage.append("\n").append(body);
             }
         }

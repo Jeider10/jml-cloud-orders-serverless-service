@@ -1,13 +1,17 @@
 package com.cloud.jml.model;
 
 import jakarta.persistence.*;
+import lombok.AllArgsConstructor;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import java.time.LocalDateTime;
 
 @Setter
 @Getter
+@NoArgsConstructor
+@AllArgsConstructor
 @Entity
 @Table(name = "ordenes_detalles")
 public class OrdenDetalleEntity {
@@ -16,14 +20,14 @@ public class OrdenDetalleEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    // código del producto (identificador dentro del catálogo)
+    // codigo del producto (identificador dentro del catalogo)
     private Long codigo;
     private String producto;
     private String descripcion;
     private Long cantidad;
     private Long precio;
 
-    // Relación muchos a uno: varios detalles pertenecen a una misma orden; Carga perezosa. Carga diferida para optimizar rendimiento
+    // Relacion muchos a uno: varios detalles pertenecen a una misma orden; Carga perezosa. Carga diferida para optimizar rendimiento
     @ManyToOne(fetch = FetchType.LAZY) // Solo se trae desde la base de datos cuando realmente accedes al campo orden
     @JoinColumn(name = "numero_orden", nullable = false) // FK hacia OrdenEntity.numero_orden
     private OrdenEntity orden;

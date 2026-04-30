@@ -4,7 +4,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
 @Slf4j
-@Component // 🔹 Anotación para indicar que es un componente de Spring
+@Component // 🔹 Anotacion para indicar que es un componente de Spring
 public class GeneralUtils {
 
     /**

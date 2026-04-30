@@ -4,16 +4,16 @@ import lombok.Getter;
 import org.springframework.http.HttpStatus;
 
 @Getter
-public class CantidadRuntimeException extends RuntimeException {
+public abstract class CantidadRuntimeException extends RuntimeException {
 
     private final HttpStatus status;
 
-    public CantidadRuntimeException(HttpStatus status, String message) {
+    protected CantidadRuntimeException(HttpStatus status, String message) {
         super(message);
         this.status = status;
     }
 
-    public CantidadRuntimeException(HttpStatus status, String message, Throwable cause) {
+    protected CantidadRuntimeException(HttpStatus status, String message, Throwable cause) {
         super(message, cause);
         this.status = status;
     }

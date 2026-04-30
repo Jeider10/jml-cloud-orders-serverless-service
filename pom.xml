@@ -13,7 +13,7 @@
     <parent>
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-starter-parent</artifactId>
-        <version>4.0.3</version>
+        <version>4.0.6</version>
         <relativePath/> <!-- lookup parent from repository -->
     </parent>
 
@@ -25,15 +25,14 @@
         <maven-surefire-plugin.version>3.5.5</maven-surefire-plugin.version>
         <maven-compiler-plugin.version>3.15.0</maven-compiler-plugin.version>
 
-        <com.mysql.version>9.4.0</com.mysql.version>
-        <projectlombok.version>1.18.44</projectlombok.version>
+        <com.mysql.version>9.7.0</com.mysql.version>
+        <projectlombok.version>1.18.46</projectlombok.version>
         <jsonwebtoken.version>0.13.0</jsonwebtoken.version>
-        <jetbrains.version>26.0.2-1</jetbrains.version>
+        <jetbrains.version>26.1.0</jetbrains.version>
         <jfiglet.version>0.0.9</jfiglet.version>
-        <jansi.version>2.4.2</jansi.version>
-        <com.fasterxml.jackson.version>2.21.1</com.fasterxml.jackson.version>
+        <jansi.version>2.4.3</jansi.version>
+        <com.fasterxml.jackson.version>2.21.3</com.fasterxml.jackson.version>
         <jackson-annotations.version>2.21</jackson-annotations.version>
-        <ch.qos.logback.version>1.5.19</ch.qos.logback.version>
     </properties>
 
     <dependencies>
@@ -43,6 +42,11 @@
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-web</artifactId>
             <exclusions>
+                <!-- Excluir logging por defecto (Logback) para usar Log4j2 en su lugar -->
+                <exclusion>
+                    <groupId>org.springframework.boot</groupId>
+                    <artifactId>spring-boot-starter-logging</artifactId>
+                </exclusion>
                 <exclusion>
                     <groupId>ch.qos.logback</groupId>
                     <artifactId>logback-core</artifactId>
@@ -66,7 +70,7 @@
             <artifactId>spring-boot-starter-log4j2</artifactId>
         </dependency>
 
-        <!-- Starter para seguridad (Spring Security, autenticación, autorización) -->
+        <!-- Starter para seguridad (Spring Security, autenticacion, autorizacion) -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-security</artifactId>
@@ -82,6 +86,13 @@
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-data-jpa</artifactId>
+            <exclusions>
+                <!-- Excluir logging por defecto para evitar conflicto con Log4j2 -->
+                <exclusion>
+                    <groupId>org.springframework.boot</groupId>
+                    <artifactId>spring-boot-starter-logging</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
 
         <!-- Motor de plantillas Thymeleaf (para renderizar vistas HTML) -->
@@ -90,7 +101,7 @@
             <artifactId>spring-boot-starter-thymeleaf</artifactId>
         </dependency>
 
-        <!-- Starter para validación de datos (JSR-380: @NotNull, @Size, etc.) -->
+        <!-- Starter para validacion de datos (JSR-380: @NotNull, @Size, etc.) -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-validation</artifactId>
@@ -110,14 +121,14 @@
             <artifactId>jjwt-api</artifactId>
             <version>${jsonwebtoken.version}</version>
         </dependency>
-        <!-- JWT: implementación (se carga en runtime) -->
+        <!-- JWT: implementacion (se carga en runtime) -->
         <dependency>
             <groupId>io.jsonwebtoken</groupId>
             <artifactId>jjwt-impl</artifactId>
             <version>${jsonwebtoken.version}</version>
             <scope>runtime</scope>
         </dependency>
-        <!-- JWT: integración con Jackson para serializar/parsear tokens -->
+        <!-- JWT: integracion con Jackson para serializar/parsear tokens -->
         <dependency>
             <groupId>io.jsonwebtoken</groupId>
             <artifactId>jjwt-jackson</artifactId>
@@ -147,7 +158,7 @@
             <scope>compile</scope>
         </dependency>
 
-        <!-- Genera ASCII grande automáticamente, como el banner de Spring Boot, pero con cualquier nombre que tú le pases -->
+        <!-- Genera ASCII grande automaticamente, como el banner de Spring Boot, pero con cualquier nombre que tu le pases -->
         <dependency>
             <groupId>com.github.lalyos</groupId>
             <artifactId>jfiglet</artifactId>
@@ -243,7 +254,7 @@
             </plugin>
         </plugins>
 
-        <!-- Pasar la versión del pom a Spring -->
+        <!-- Pasar la version del pom a Spring -->
         <resources>
             <resource>
                 <directory>src/main/resources</directory>

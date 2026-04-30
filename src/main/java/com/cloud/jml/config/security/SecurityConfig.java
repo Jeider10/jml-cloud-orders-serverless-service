@@ -41,7 +41,7 @@ public class SecurityConfig {
         http
                 .csrf(AbstractHttpConfigurer::disable)
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-                // 🔹 Configuración de CORS: necesaria para que el frontend (por ejemplo localhost:8080)
+                // 🔹 Configuracion de CORS: necesaria para que el frontend (por ejemplo localhost:8080)
                 // pueda hacer peticiones al backend en otro origen sin ser bloqueadas por el navegador.
                 .cors(cors -> cors.configurationSource(request -> {
                     var config = new CorsConfiguration();
@@ -49,15 +49,15 @@ public class SecurityConfig {
 //                    config.setAllowedOriginPatterns(List.of("*")); // frontend
                     config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"));
                     config.setAllowedHeaders(List.of("*"));
-                    config.setAllowCredentials(true); // permite enviar headers de auth o cookies
+                    config.setAllowCredentials(true); // permite enviar headers de autenticacion o cookies
                     return config;
                 }))
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(
-                                "/roles/**", // Permitir acciones en rol sin autenticación
-                                "/usuario/**", // Permitir acciones en user sin autenticación
-                                "/authentication/**", // Permitir acciones en auth sin autenticación
-                                "/uploads/**" // permite acceso público a imágenes
+                                "/roles/**", // Permitir acciones en rol sin autenticacion
+                                "/usuario/**", // Permitir acciones en user sin autenticacion
+                                "/authentication/**", // Permitir acciones en auth sin autenticacion
+                                "/uploads/**" // permite acceso publico a imagenes
                         ).permitAll()
                         .anyRequest().authenticated()
                 )
@@ -66,7 +66,7 @@ public class SecurityConfig {
                 )
                 .addFilterBefore(jwtRequestFilter, UsernamePasswordAuthenticationFilter.class)
 
-                // 🛡️ Cabeceras de seguridad HTTP (actualizadas para Spring Boot 3.5.x)
+                // 🛡️ Cabeceras de seguridad HTTP (actualizadas para Spring Boot 4.x)
                 .headers(headers -> headers
                         // Content Security Policy moderna
                         .contentSecurityPolicy(csp ->
@@ -79,10 +79,14 @@ public class SecurityConfig {
                                 hsts.includeSubDomains(true)
                                         .maxAgeInSeconds(31536000)
                         )
-                        // Evita detección de tipo de contenido (ataques MIME)
-                        .contentTypeOptions(HeadersConfigurer.ContentTypeOptionsConfig::disable)
+                        // FIX: Se cambio .disable() por configuracion activa en contentTypeOptions y cacheControl
+                        // .disable() desactivaba las cabeceras de seguridad (comportamiento opuesto al deseado)
+                        // Evita deteccion de tipo de contenido (ataques MIME)
+                        .contentTypeOptions(cto -> {
+                        })
                         // Previene cache no segura
-                        .cacheControl(HeadersConfigurer.CacheControlConfig::disable)
+                        .cacheControl(cc -> {
+                        })
                 );
 
         return http.build();
