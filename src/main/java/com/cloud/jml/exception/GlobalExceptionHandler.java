@@ -79,7 +79,7 @@ public class GlobalExceptionHandler {
     // 🧱 Metodo comun de respuesta
     private ResponseEntity<Map<String, Object>> buildErrorResponse(HttpStatus status, String error, String message) {
         Map<String, Object> body = new HashMap<>();
-        body.put("timestamp", LocalDateTime.now());
+        body.put("timestamp", LocalDateTime.now().toString());
         body.put("status", status.value());
         body.put("error", error);
         body.put("message", message);

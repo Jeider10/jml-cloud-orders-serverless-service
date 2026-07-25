@@ -2,10 +2,12 @@ package com.cloud.jml.utils.orders;
 
 import com.cloud.jml.dto.OrdenDetalleRequestDTO;
 import com.cloud.jml.dto.OrdenDetalleResponseDTO;
+import com.cloud.jml.dto.OrdenPagoResponseDTO;
 import com.cloud.jml.dto.OrdenRequestDTO;
 import com.cloud.jml.dto.OrdenResponseDTO;
 import com.cloud.jml.model.OrdenDetalleEntity;
 import com.cloud.jml.model.OrdenEntity;
+import com.cloud.jml.model.OrdenPagoEntity;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
@@ -99,7 +101,16 @@ public class OrdenMapper {
         ordenResponseDTO.setIdentificacionProveedor(ordenEntity.getIdentificacionProveedor());
         ordenResponseDTO.setNombreProveedor(ordenEntity.getNombreProveedor());
         ordenResponseDTO.setTotalCompra(ordenEntity.getTotalCompra());
+        ordenResponseDTO.setValorRecibido(ordenEntity.getValorRecibido());
         ordenResponseDTO.setCufe(ordenEntity.getCufe());
+
+        // 🔹 Mapeo campos de descuento
+        ordenResponseDTO.setDescuentoTipo(ordenEntity.getDescuentoTipo());
+        ordenResponseDTO.setDescuentoValor(ordenEntity.getDescuentoValor());
+        ordenResponseDTO.setDescuentoAplicado(ordenEntity.getDescuentoAplicado());
+
+        // 🔹 Mapeo comentario
+        ordenResponseDTO.setComentario(ordenEntity.getComentario());
 
         // Mapeo lista de detalles
         if (ordenEntity.getDetalles() != null && !ordenEntity.getDetalles().isEmpty()) {
@@ -110,6 +121,17 @@ public class OrdenMapper {
             }
 
             ordenResponseDTO.setDetalles(detalles);
+        }
+
+        // 🔹 Mapeo lista de pagos
+        if (ordenEntity.getPagos() != null && !ordenEntity.getPagos().isEmpty()) {
+            List<OrdenPagoResponseDTO> pagos = new ArrayList<>();
+
+            for (OrdenPagoEntity pago : ordenEntity.getPagos()) {
+                pagos.add(mapPagoEntityToResponse(pago));
+            }
+
+            ordenResponseDTO.setPagos(pagos);
         }
 
         // Formateo de fechas
@@ -192,5 +214,24 @@ public class OrdenMapper {
         }
         // siempre actualizar la fecha de la orden
         orden.setFechaActualizacion(LocalDateTime.now());
+    }
+
+    /**
+     * Mapea una entidad de pago a DTO de respuesta.
+     */
+    public OrdenPagoResponseDTO mapPagoEntityToResponse(OrdenPagoEntity pagoEntity) {
+        log.debug("📦 [MAPEO] Mapeando Pago Entity -> DTO: metodo={}, valor={}", pagoEntity.getMetodoPago(), pagoEntity.getValor());
+
+        OrdenPagoResponseDTO responseDTO = new OrdenPagoResponseDTO();
+        responseDTO.setId(pagoEntity.getId());
+        responseDTO.setMetodoPago(pagoEntity.getMetodoPago());
+        responseDTO.setValor(pagoEntity.getValor());
+        responseDTO.setReferencia(pagoEntity.getReferencia());
+
+        if (pagoEntity.getFechaCreacion() != null) {
+            responseDTO.setFechaCreacion(ordenFormatearFecha.formatearFecha(pagoEntity.getFechaCreacion()));
+        }
+
+        return responseDTO;
     }
 }

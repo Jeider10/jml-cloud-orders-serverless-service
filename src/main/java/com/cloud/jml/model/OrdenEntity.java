@@ -37,8 +37,25 @@ public class OrdenEntity {
     private String nombreProveedor;
     private Long totalCompra;
 
+    @Column(name = "valor_recibido")
+    private Long valorRecibido;
+
     @Column(name = "cufe", length = 150)
     private String cufe;
+
+    // 🔹 Campos de descuento (persistidos al cerrar la venta)
+    @Column(name = "descuento_tipo", length = 20)
+    private String descuentoTipo; // PORCENTAJE o FIJO
+
+    @Column(name = "descuento_valor")
+    private Long descuentoValor; // El porcentaje (ej: 10) o monto fijo (ej: 5000)
+
+    @Column(name = "descuento_aplicado")
+    private Long descuentoAplicado; // Monto final descontado en pesos
+
+    // 🔹 Comentario/Observacion de la venta (ej: "Debe $50.000, paga el viernes")
+    @Column(name = "comentario", length = 500)
+    private String comentario;
 
     @Column(name = "fecha_creacion", nullable = false, updatable = false)
     private LocalDateTime fechaCreacion;
@@ -49,4 +66,8 @@ public class OrdenEntity {
     // Relacion uno a muchos: una orden puede tener varios detalles; se propagan cambios y se eliminan huerfanos automaticamente
     @OneToMany(mappedBy = "orden", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<OrdenDetalleEntity> detalles = new ArrayList<>();
+
+    // 🔹 Relacion uno a muchos: una orden puede tener varios pagos (pago mixto)
+    @OneToMany(mappedBy = "orden", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<OrdenPagoEntity> pagos = new ArrayList<>();
 }

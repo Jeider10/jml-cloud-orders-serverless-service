@@ -3,7 +3,7 @@
 
     <Properties>
         <Property name="appName">jml-cloud-orders-serverless-service</Property>
-        <Property name="logPath">${sys:user.dir}/logs</Property>
+        <Property name="logPath">${sys:user.dir}/../logs</Property>
     </Properties>
 
     <Appenders>
@@ -22,6 +22,8 @@
                 <TimeBasedTriggeringPolicy interval="1"/>
                 <SizeBasedTriggeringPolicy size="50 MB"/>
             </Policies>
+
+            <DefaultRolloverStrategy max="30"/>
 
         </RollingRandomAccessFile>
 

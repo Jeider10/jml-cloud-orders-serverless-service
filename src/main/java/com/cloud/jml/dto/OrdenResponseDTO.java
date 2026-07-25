@@ -19,7 +19,16 @@ public class OrdenResponseDTO {
     private String fechaCreacion;
     private String fechaActualizacion;
     private Long totalCompra;
+    private Long valorRecibido;
     private String cufe;
+
+    // 🔹 Campos de descuento
+    private String descuentoTipo;
+    private Long descuentoValor;
+    private Long descuentoAplicado;
+
+    // 🔹 Comentario/Observacion
+    private String comentario;
 
     private Long identificacionCliente;
     private String nombreCliente;
@@ -33,4 +42,7 @@ public class OrdenResponseDTO {
     private String nombreProveedor;
 
     private List<OrdenDetalleResponseDTO> detalles;
+
+    // 🔹 Lista de pagos realizados
+    private List<OrdenPagoResponseDTO> pagos;
 }

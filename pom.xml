@@ -243,6 +243,12 @@
                 <configuration>
                     <source>${java.version}</source>
                     <target>${java.version}</target>
+                    <!-- - Ofuscacion basica: no incluir info de debug (variables, lineas, source) -->
+<!--                    <debug>false</debug>-->
+<!--                    <debuglevel>none</debuglevel>-->
+<!--                    <compilerArgs>-->
+<!--                        <arg>-g:none</arg>-->
+<!--                    </compilerArgs>-->
                     <annotationProcessorPaths>
                         <path>
                             <groupId>org.projectlombok</groupId>

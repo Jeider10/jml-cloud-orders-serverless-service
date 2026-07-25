@@ -1,6 +1,5 @@
 package com.cloud.jml.dto;
 
-import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 import lombok.AllArgsConstructor;
@@ -20,11 +19,11 @@ public class OrdenRequestDTO {
     @NotNull(message = "La identificacion del cliente es obligatoria")
     private Long identificacionCliente;
 
-    @NotBlank(message = "El campo 'nombreCliente' es obligatorio")
+    //    @NotBlank(message = "El campo 'nombreCliente' es obligatorio")
     @Size(max = 100, message = "El campo 'nombreCliente' no puede exceder 100 caracteres")
     private String nombreCliente;
 
-    @NotBlank(message = "El campo 'apellidoCliente' es obligatorio")
+    //    @NotBlank(message = "El campo 'apellidoCliente' es obligatorio")
     @Size(max = 100, message = "El campo 'apellidoCliente' no puede exceder 100 caracteres")
     private String apellidoCliente;
 

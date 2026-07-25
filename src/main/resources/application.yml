@@ -12,10 +12,10 @@ spring:
 application:
   version: "@project.version@"
 
-#logging:
+logging:
 #  file:
 #    name: logs/${spring.application.name}.log
-#  config: classpath:log4j2-spring.xml
+  config: classpath:log4j2-spring.xml
 #  level:
 #    org.springframework: DEBUG
 
