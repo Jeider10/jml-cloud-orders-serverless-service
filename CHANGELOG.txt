@@ -1,0 +1,9 @@
+=====================================
+ JML Cloud - Orders Service
+ Historial de Cambios
+=====================================
+
+[1.0.0-SNAPSHOT] - 2026-07-26 - (Jeider Montiel)
+  - Version inicial del servicio de ordenes/ventas.
+  - Creacion y gestion de ordenes de venta.
+  - Historial de ventas.
