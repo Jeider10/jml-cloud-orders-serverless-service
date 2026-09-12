@@ -39,3 +39,15 @@ logging:
 #  secret: gOOKoiLpQ/XDAAo9I85L/2Bh3Y9KWvDFyRf7vqqGP38=
 #  expiration: 3600000  # 1 hora en milisegundos
 #  refreshExpirationMs: 14400000  # 3 horas en milisegundos
+
+# --------------------------------------------------------------
+# 📊 Actuator
+# --------------------------------------------------------------
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info
+  endpoint:
+    health:
+      show-details: always

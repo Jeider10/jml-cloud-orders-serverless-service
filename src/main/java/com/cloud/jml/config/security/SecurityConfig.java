@@ -35,7 +35,13 @@ public class SecurityConfig {
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) {
-        String origins = generalUtils.getEnvOrDefault("URL_BASE_MICRO_FRONTEND", "http://localhost:1080");
+        // URL_BASE_MICRO_FRONTEND puede ser una lista separada por comas.
+        // El default cubre los puertos habituales de desarrollo local.
+        // En produccion pasa la variable de entorno con la URL real del frontend.
+        String origins = generalUtils.getEnvOrDefault(
+                "URL_BASE_MICRO_FRONTEND",
+                "http://localhost:1080,http://localhost:3000,http://localhost:3001,http://localhost:5173"
+        );
         List<String> allowedOrigins = List.of(origins.split(","));
 
         http
@@ -57,7 +63,8 @@ public class SecurityConfig {
                                 "/roles/**", // Permitir acciones en rol sin autenticacion
                                 "/usuario/**", // Permitir acciones en user sin autenticacion
                                 "/authentication/**", // Permitir acciones en auth sin autenticacion
-                                "/uploads/**" // permite acceso publico a imagenes
+                                "/uploads/**", // permite acceso publico a imagenes
+                                "/actuator/**" // Actuator: health y info sin autenticacion
                         ).permitAll()
                         .anyRequest().authenticated()
                 )
