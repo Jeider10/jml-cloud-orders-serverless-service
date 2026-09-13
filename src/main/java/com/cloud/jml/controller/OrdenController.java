@@ -1,6 +1,7 @@
 package com.cloud.jml.controller;
 
 import com.cloud.jml.dto.CerrarOrdenRequestDTO;
+import com.cloud.jml.dto.OrdenEliminadaResponseDTO;
 import com.cloud.jml.dto.OrdenRequestDTO;
 import com.cloud.jml.dto.OrdenResponseDTO;
 import com.cloud.jml.service.OrdenService;
@@ -166,15 +167,58 @@ public class OrdenController {
     @DeleteMapping("/delete/{numeroOrden}")
     public ResponseEntity<Void> eliminarOrdenCliente(
             @PathVariable String numeroOrden,
-            @RequestParam("cliente") String identificacionCliente) {
+            @RequestParam("cliente") String identificacionCliente,
+            @RequestParam(value = "eliminadoPorId", defaultValue = "SISTEMA") String eliminadoPorId,
+            @RequestParam(value = "eliminadoPorNombre", defaultValue = "Sistema") String eliminadoPorNombre,
+            @RequestParam(value = "eliminadoPorRol", defaultValue = "SISTEMA") String eliminadoPorRol,
+            @RequestParam(value = "motivo", required = false) String motivo) {
 
-        log.info("📥 [SOLICITUD] Solicitud para eliminar orden -> numeroOrden: {}, cliente: {}", numeroOrden, identificacionCliente);
+        log.info("📥 [SOLICITUD] Solicitud para eliminar orden -> numeroOrden: {}, cliente: {}, por: {}",
+                numeroOrden, identificacionCliente, eliminadoPorId);
 
-        ordenService.eliminarOrdenCliente(numeroOrden, identificacionCliente);
+        ordenService.eliminarOrdenCliente(numeroOrden, identificacionCliente,
+                eliminadoPorId, eliminadoPorNombre, eliminadoPorRol, motivo);
 
-        log.info("📤 [RESPUESTA] Orden eliminada exitosamente -> numeroOrden: {}, cliente: {}", numeroOrden, identificacionCliente);
+        log.info("📤 [RESPUESTA] Orden eliminada exitosamente -> numeroOrden: {}, por: {}", numeroOrden, eliminadoPorId);
 
         return ResponseEntity.ok().build();
+    }
+
+    @GetMapping("/papelera")
+    public ResponseEntity<List<OrdenEliminadaResponseDTO>> listarPapelera() {
+        log.info("📥 [SOLICITUD] Listar papelera de ordenes eliminadas");
+
+        List<OrdenEliminadaResponseDTO> lista = ordenService.listarPapelera();
+
+        if (lista.isEmpty()) {
+            return ResponseEntity.noContent().build();
+        }
+
+        log.info("📤 [RESPUESTA] Se retornan {} registros de papelera", lista.size());
+
+        return ResponseEntity.ok(lista);
+    }
+
+    @DeleteMapping("/papelera/{id}/definitivo")
+    public ResponseEntity<Void> eliminarDefinitivoPapelera(@PathVariable Long id) {
+        log.info("📥 [SOLICITUD] Eliminacion definitiva del registro de papelera id: {}", id);
+
+        ordenService.eliminarDefinitivoPapelera(id);
+
+        log.info("📤 [RESPUESTA] Registro eliminado definitivamente de la papelera. id: {}", id);
+
+        return ResponseEntity.ok().build();
+    }
+
+    @PostMapping("/papelera/{id}/restaurar")
+    public ResponseEntity<OrdenResponseDTO> restaurarDesdePapelera(@PathVariable Long id) {
+        log.info("📥 [SOLICITUD] Restaurar orden desde papelera. id: {}", id);
+
+        OrdenResponseDTO dto = ordenService.restaurarDesdePapelera(id);
+
+        log.info("📤 [RESPUESTA] Orden restaurada al historial. numeroOrden: {}", dto.getNumeroOrden());
+
+        return ResponseEntity.ok(dto);
     }
 
     @GetMapping("/buscar")

@@ -2,6 +2,7 @@ package com.cloud.jml.utils.orders;
 
 import com.cloud.jml.dto.*;
 import com.cloud.jml.model.OrdenDetalleEntity;
+import com.cloud.jml.model.OrdenEliminadaEntity;
 import com.cloud.jml.model.OrdenEntity;
 import com.cloud.jml.model.OrdenPagoEntity;
 import lombok.extern.slf4j.Slf4j;
@@ -230,5 +231,52 @@ public class OrdenMapper {
         }
 
         return responseDTO;
+    }
+
+    public OrdenEliminadaResponseDTO mapEliminadaToDTO(OrdenEliminadaEntity e) {
+
+        OrdenEliminadaResponseDTO dto = new OrdenEliminadaResponseDTO();
+
+        dto.setId(e.getId());
+        dto.setNumeroOrden(e.getNumeroOrden());
+        dto.setEstadoOrden(e.getEstadoOrden());
+        dto.setNumeroFactura(e.getNumeroFactura());
+        dto.setIdentificacionCliente(e.getIdentificacionCliente());
+        dto.setNombreCliente(e.getNombreCliente());
+        dto.setIdentificacionEmpleado(e.getIdentificacionEmpleado());
+        dto.setNombreEmpleado(e.getNombreEmpleado());
+        dto.setTotalCompra(e.getTotalCompra());
+        dto.setEliminadoPorIdentificacion(e.getEliminadoPorIdentificacion());
+        dto.setEliminadoPorNombre(e.getEliminadoPorNombre());
+        dto.setEliminadoPorRol(e.getEliminadoPorRol());
+        dto.setMotivo(e.getMotivo());
+
+        if (e.getFechaEliminacion() != null) {
+            dto.setFechaEliminacion(e.getFechaEliminacion().toString());
+        }
+
+        if (e.getFechaExpiracion() != null) {
+            dto.setFechaExpiracion(e.getFechaExpiracion().toString());
+        }
+
+        if (e.getFechaCreacionOriginal() != null) {
+            dto.setFechaCreacionOriginal(e.getFechaCreacionOriginal().toString());
+        }
+
+        // Mapear detalles guardados en papelera
+        if (e.getDetalles() != null && !e.getDetalles().isEmpty()) {
+            List<OrdenPapeleraDetalleDTO> detallesDTO = e.getDetalles().stream().map(d -> {
+                OrdenPapeleraDetalleDTO dd = new OrdenPapeleraDetalleDTO();
+                dd.setCodigoProducto(d.getCodigoProducto());
+                dd.setNombreProducto(d.getNombreProducto());
+                dd.setDescripcion(d.getDescripcion());
+                dd.setCantidad(d.getCantidad());
+                dd.setPrecio(d.getPrecio());
+                return dd;
+            }).toList();
+            dto.setDetalles(detallesDTO);
+        }
+
+        return dto;
     }
 }

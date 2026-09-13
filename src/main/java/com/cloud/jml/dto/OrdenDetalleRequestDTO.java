@@ -14,7 +14,6 @@ import lombok.Setter;
 @AllArgsConstructor // Constructor con todos los argumentos
 public class OrdenDetalleRequestDTO {
 
-    // FIX: Se agregaron validaciones Jakarta Bean Validation para evitar datos invalidos
     @NotNull(message = "El campo 'codigo' es obligatorio")
     private Long codigo;
 

@@ -22,12 +22,12 @@ public class OrdenResponseDTO {
     private Long valorRecibido;
     private String cufe;
 
-    // 🔹 Campos de descuento
+    // Campos de descuento
     private String descuentoTipo;
     private Long descuentoValor;
     private Long descuentoAplicado;
 
-    // 🔹 Comentario/Observacion
+    // Comentario/Observacion
     private String comentario;
 
     private String identificacionCliente;
@@ -43,6 +43,6 @@ public class OrdenResponseDTO {
 
     private List<OrdenDetalleResponseDTO> detalles;
 
-    // 🔹 Lista de pagos realizados
+    // Lista de pagos realizados
     private List<OrdenPagoResponseDTO> pagos;
 }

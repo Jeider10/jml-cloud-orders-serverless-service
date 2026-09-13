@@ -1,17 +1,13 @@
 package com.cloud.jml.service;
 
-import com.cloud.jml.dto.CerrarOrdenRequestDTO;
-import com.cloud.jml.dto.OrdenPagoRequestDTO;
-import com.cloud.jml.dto.OrdenRequestDTO;
-import com.cloud.jml.dto.OrdenResponseDTO;
+import com.cloud.jml.dto.*;
 import com.cloud.jml.exception.cantidad.CantidadInvalidaException;
 import com.cloud.jml.exception.orders.OrdenNoEncontradaException;
 import com.cloud.jml.exception.orders.OrdenPorClienteNoEncontradaException;
 import com.cloud.jml.exception.producto.ProductoNoEncontradoException;
 import com.cloud.jml.exception.stock.StockInsuficienteException;
-import com.cloud.jml.model.OrdenDetalleEntity;
-import com.cloud.jml.model.OrdenEntity;
-import com.cloud.jml.model.OrdenPagoEntity;
+import com.cloud.jml.model.*;
+import com.cloud.jml.repository.OrdenEliminadaRepository;
 import com.cloud.jml.repository.OrdenRepository;
 import com.cloud.jml.utils.orders.OrdenMapper;
 import com.cloud.jml.utils.orders.OrdenUtils;
@@ -31,11 +27,14 @@ public class OrdenService {
     public static final String ESTADO_ABIERTA = "ABIERTA";
 
     private final OrdenRepository ordenRepository;
+    private final OrdenEliminadaRepository ordenEliminadaRepository;
     private final OrdenMapper mapper;
     private final OrdenUtils ordenUtils;
 
-    public OrdenService(OrdenRepository ordenRepository, OrdenMapper mapper, OrdenUtils ordenUtils) {
+    public OrdenService(OrdenRepository ordenRepository, OrdenEliminadaRepository ordenEliminadaRepository,
+                        OrdenMapper mapper, OrdenUtils ordenUtils) {
         this.ordenRepository = ordenRepository;
+        this.ordenEliminadaRepository = ordenEliminadaRepository;
         this.mapper = mapper;
         this.ordenUtils = ordenUtils;
         log.info("🔥 OrdenService inicializado correctamente.");
@@ -166,8 +165,8 @@ public class OrdenService {
     }
 
     /**
-     * Resta cantidad (o elimina) un detalle de orden buscando por el ID único del detalle.
-     * Esto permite manejar correctamente múltiples filas del mismo producto en una orden.
+     * Resta cantidad (o elimina) un detalle de orden buscando por el ID unico del detalle.
+     * Esto permite manejar correctamente multiples filas del mismo producto en una orden.
      */
     @Transactional
     public OrdenResponseDTO restarCantidadPorIdDetalle(String numeroOrden, Long idDetalle, int cantidadARestar) {
@@ -181,7 +180,7 @@ public class OrdenService {
 
         OrdenEntity orden = ordenOpt.get();
 
-        // Buscar el detalle por su ID único (no por código)
+        // Buscar el detalle por su ID unico (no por codigo)
         OrdenDetalleEntity detalle = orden.getDetalles().stream()
                 .filter(d -> idDetalle.equals(d.getId()))
                 .findFirst()
@@ -210,7 +209,7 @@ public class OrdenService {
     }
 
     /**
-     * Suma cantidad a un detalle específico por su ID único.
+     * Suma cantidad a un detalle especifico por su ID unico.
      * Permite incrementar la cantidad de una fila concreta sin afectar otras filas del mismo producto.
      */
     @Transactional
@@ -225,7 +224,7 @@ public class OrdenService {
 
         OrdenEntity orden = ordenOpt.get();
 
-        // Buscar el detalle por su ID único
+        // Buscar el detalle por su ID unico
         OrdenDetalleEntity detalle = orden.getDetalles().stream()
                 .filter(d -> idDetalle.equals(d.getId()))
                 .findFirst()
@@ -373,29 +372,158 @@ public class OrdenService {
     }
 
     @Transactional
-    public void eliminarOrdenCliente(String numeroOrden, String identificacionCliente) {
-        log.info("🔍 [CONSULTA] Buscando orden numero: {} para cliente: {}", numeroOrden, identificacionCliente);
+    public void eliminarOrdenCliente(String numeroOrden, String identificacionCliente,
+                                     String eliminadoPorIdentificacion, String eliminadoPorNombre,
+                                     String eliminadoPorRol, String motivo) {
+        log.info("Buscando orden {} para cliente: {}", numeroOrden, identificacionCliente);
 
         Optional<OrdenEntity> ordenOptional = ordenRepository.findByNumeroOrdenAndIdentificacionCliente(numeroOrden, identificacionCliente);
 
         if (ordenOptional.isEmpty()) {
-            log.warn("⚠️ [NO ENCONTRADA] No existe orden con numero: {} para cliente: {}", numeroOrden, identificacionCliente);
+            log.warn("No existe orden con numero: {} para cliente: {}", numeroOrden, identificacionCliente);
             throw new OrdenPorClienteNoEncontradaException(identificacionCliente);
         }
 
         OrdenEntity ordenEntity = ordenOptional.get();
-        log.info("📦 [ENCONTRADA] Orden localizada -> numeroOrden: {}, cliente: {}, estado: {}",
+        log.info("Orden localizada -> numeroOrden: {}, cliente: {}, estado: {}",
                 ordenEntity.getNumeroOrden(), ordenEntity.getIdentificacionCliente(), ordenEntity.getEstadoOrden());
 
-        // Validar que la orden este ABIERTA antes de eliminar
-        if (!ESTADO_ABIERTA.equals(ordenEntity.getEstadoOrden())) {
-            log.warn("❌ [ERROR] No se puede eliminar una orden con estado: {}", ordenEntity.getEstadoOrden());
-            throw new OrdenNoEncontradaException(numeroOrden);
+        // Registrar auditoria antes de eliminar
+        OrdenEliminadaEntity registro = new OrdenEliminadaEntity();
+        registro.setNumeroOrden(ordenEntity.getNumeroOrden());
+        registro.setEstadoOrden(ordenEntity.getEstadoOrden());
+        registro.setNumeroFactura(ordenEntity.getNumeroFactura());
+        registro.setIdentificacionCliente(ordenEntity.getIdentificacionCliente());
+        registro.setNombreCliente(ordenEntity.getNombreCliente());
+        registro.setIdentificacionEmpleado(ordenEntity.getIdentificacionEmpleado());
+        registro.setNombreEmpleado(ordenEntity.getNombreEmpleado());
+        registro.setTotalCompra(ordenEntity.getTotalCompra());
+        registro.setEliminadoPorIdentificacion(eliminadoPorIdentificacion);
+        registro.setEliminadoPorNombre(eliminadoPorNombre);
+        registro.setEliminadoPorRol(eliminadoPorRol);
+        registro.setMotivo(motivo != null ? motivo : "Sin motivo especificado");
+        registro.setFechaEliminacion(LocalDateTime.now());
+        registro.setFechaExpiracion(LocalDateTime.now().plusMonths(2));
+        registro.setFechaCreacionOriginal(ordenEntity.getFechaCreacion());
+
+        // Copiar los detalles (items) de la orden para permitir restauracion completa
+        if (ordenEntity.getDetalles() != null) {
+            for (OrdenDetalleEntity detalle : ordenEntity.getDetalles()) {
+                OrdenPapeleraDetalleEntity copia = new OrdenPapeleraDetalleEntity();
+                copia.setPapelera(registro);
+                copia.setCodigoProducto(detalle.getCodigo());
+                copia.setNombreProducto(detalle.getProducto());
+                copia.setDescripcion(detalle.getDescripcion());
+                copia.setCantidad(detalle.getCantidad());
+                copia.setPrecio(detalle.getPrecio());
+                registro.getDetalles().add(copia);
+            }
         }
 
+        ordenEliminadaRepository.save(registro);
+        log.info("Registro de auditoria guardado para orden: {}", numeroOrden);
+
         ordenUtils.eliminarOrdenBD(ordenEntity);
-        log.info("🗑️ [ELIMINADA] Orden eliminada exitosamente -> numeroOrden: {}, cliente: {}",
+        log.info("Orden eliminada exitosamente -> numeroOrden: {}, cliente: {}",
                 ordenEntity.getNumeroOrden(), ordenEntity.getIdentificacionCliente());
+    }
+
+    @Transactional(readOnly = true)
+    public List<OrdenEliminadaResponseDTO> listarPapelera() {
+        log.info("Listando todas las ordenes eliminadas");
+
+        List<OrdenEliminadaEntity> lista = ordenEliminadaRepository.findAllByOrderByFechaEliminacionDesc();
+
+        return lista.stream().map(mapper::mapEliminadaToDTO).toList();
+    }
+
+    /**
+     * Restaura una orden desde la papelera.
+     * Recrea la OrdenEntity con todos sus detalles (items copiados al eliminar)
+     * y la devuelve al estado CERRADA para que reaparezca en el historial.
+     * Elimina el registro de la papelera tras restaurar.
+     */
+    @Transactional
+    public OrdenResponseDTO restaurarDesdePapelera(Long id) {
+        log.info("Solicitud de restauracion desde papelera. id: {}", id);
+
+        OrdenEliminadaEntity registro = ordenEliminadaRepository.findById(id)
+                .orElseThrow(() -> {
+                    log.warn("Registro de papelera no encontrado con id: {}", id);
+                    return new OrdenNoEncontradaException(String.valueOf(id));
+                });
+
+        // Verificar que no existe ya una orden con ese numero en la BD
+        if (ordenRepository.existsById(registro.getNumeroOrden())) {
+            log.warn("Ya existe una orden con numeroOrden: {} en la base de datos.", registro.getNumeroOrden());
+            throw new IllegalStateException(
+                    "Ya existe una orden con ese numero en el sistema. No se puede restaurar duplicado.");
+        }
+
+        // Recrear la OrdenEntity con los datos de la papelera
+        OrdenEntity ordenRestaurada = new OrdenEntity();
+        ordenRestaurada.setNumeroOrden(registro.getNumeroOrden());
+        ordenRestaurada.setEstadoOrden(registro.getEstadoOrden() != null ? registro.getEstadoOrden() : "CERRADA");
+        ordenRestaurada.setNumeroFactura(registro.getNumeroFactura());
+        ordenRestaurada.setIdentificacionCliente(registro.getIdentificacionCliente());
+        ordenRestaurada.setNombreCliente(registro.getNombreCliente());
+        ordenRestaurada.setIdentificacionEmpleado(registro.getIdentificacionEmpleado());
+        ordenRestaurada.setNombreEmpleado(registro.getNombreEmpleado());
+        ordenRestaurada.setTotalCompra(registro.getTotalCompra());
+        ordenRestaurada.setComentario(
+                "Orden restaurada desde papelera el " + LocalDateTime.now().toLocalDate());
+        ordenRestaurada.setFechaCreacion(
+                registro.getFechaCreacionOriginal() != null
+                        ? registro.getFechaCreacionOriginal()
+                        : LocalDateTime.now());
+        ordenRestaurada.setFechaActualizacion(LocalDateTime.now());
+
+        // Restaurar los detalles (items) copiados al eliminar
+        if (registro.getDetalles() != null && !registro.getDetalles().isEmpty()) {
+            for (OrdenPapeleraDetalleEntity d : registro.getDetalles()) {
+                OrdenDetalleEntity detalle = new OrdenDetalleEntity();
+                detalle.setOrden(ordenRestaurada);
+                detalle.setCodigo(d.getCodigoProducto());
+                detalle.setProducto(d.getNombreProducto());
+                detalle.setDescripcion(d.getDescripcion());
+                detalle.setCantidad(d.getCantidad());
+                detalle.setPrecio(d.getPrecio());
+                detalle.setFechaCreacion(LocalDateTime.now());
+                ordenRestaurada.getDetalles().add(detalle);
+            }
+            log.info("Restaurando {} detalles para la orden: {}", registro.getDetalles().size(), registro.getNumeroOrden());
+        }
+
+        OrdenEntity guardada = ordenUtils.guardarOrdenBD(ordenRestaurada);
+        log.info("Orden restaurada en BD. numeroOrden: {}, detalles: {}", guardada.getNumeroOrden(), guardada.getDetalles().size());
+
+        OrdenResponseDTO dto = mapper.mapEntityToResponseDto(guardada);
+
+        // Eliminar el registro de la papelera
+        ordenEliminadaRepository.delete(registro);
+        log.info("Registro eliminado de la papelera tras restauracion. id: {}", id);
+
+        return dto;
+    }
+
+    /**
+     * Elimina definitivamente un registro de la papelera.
+     * Solo permitido si ya paso el periodo minimo de retencion (2 meses).
+     */
+    @Transactional
+    public void eliminarDefinitivoPapelera(Long id) {
+        log.info("Solicitud de eliminacion definitiva del registro de papelera id: {}", id);
+        OrdenEliminadaEntity registro = ordenEliminadaRepository.findById(id)
+                .orElseThrow(() -> {
+                    log.warn("Registro de papelera no encontrado con id: {}", id);
+                    return new OrdenNoEncontradaException(String.valueOf(id));
+                });
+        if (LocalDateTime.now().isBefore(registro.getFechaExpiracion())) {
+            log.warn("No se puede eliminar definitivamente: periodo minimo de 2 meses no cumplido. Expira: {}", registro.getFechaExpiracion());
+            throw new IllegalStateException("No se puede eliminar definitivamente: el periodo minimo de retencion de 2 meses no ha expirado. Expira: " + registro.getFechaExpiracion().toLocalDate());
+        }
+        ordenEliminadaRepository.delete(registro);
+        log.info("Registro eliminado definitivamente de la papelera. id: {}", id);
     }
 
     @Transactional

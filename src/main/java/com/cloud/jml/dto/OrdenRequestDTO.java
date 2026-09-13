@@ -17,11 +17,11 @@ public class OrdenRequestDTO {
     // identificacionCliente es opcional — si no se proporciona se usa "CONSUMIDOR FINAL"
     private String identificacionCliente;
 
-    //    @NotBlank(message = "El campo 'nombreCliente' es obligatorio")
+    // @NotBlank(message = "El campo 'nombreCliente' es obligatorio")
     @Size(max = 100, message = "El campo 'nombreCliente' no puede exceder 100 caracteres")
     private String nombreCliente;
 
-    //    @NotBlank(message = "El campo 'apellidoCliente' es obligatorio")
+    // @NotBlank(message = "El campo 'apellidoCliente' es obligatorio")
     @Size(max = 100, message = "El campo 'apellidoCliente' no puede exceder 100 caracteres")
     private String apellidoCliente;
 

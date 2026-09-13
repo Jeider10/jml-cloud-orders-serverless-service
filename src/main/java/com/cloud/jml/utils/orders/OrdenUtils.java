@@ -214,8 +214,8 @@ public class OrdenUtils {
 
     /**
      * Agrega detalles a una orden existente y recalcula total.
-     * Siempre crea una nueva entrada por ítem — la consolidación se maneja
-     * explícitamente desde el frontend con los botones +/- de la tabla.
+     * Siempre crea una nueva entrada por item — la consolidacion se maneja
+     * explicitamente desde el frontend con los botones +/- de la tabla.
      */
     public void agregarDetallesOrdenExistente(OrdenEntity ordenEntity, OrdenRequestDTO requestDTO) {
         log.info("🗂️ [SOLICITUD] Agregando detalles a orden existente: {}", ordenEntity.getNumeroOrden());
@@ -320,18 +320,18 @@ public class OrdenUtils {
 
         String fechaActual = LocalDateTime.now().toString();
 
-        Long total = orden.getTotalCompra() != null ? orden.getTotalCompra() : 0L;
+        long total = orden.getTotalCompra() != null ? orden.getTotalCompra() : 0L;
 
         // Calcular IVA al 19%
-        Long iva = (long) (total * 0.19);
+        long iva = (long) (total * 0.19);
 
         // Generar CUFE usando el generador de hash SHA-384
         String cufe = CUFEGenerator.generarCUFE(
-                orden.getIdentificacionCliente().toString(), // puedes usar NIT real si lo tienes
+                orden.getIdentificacionCliente(), // puedes usar NIT real si lo tienes
                 orden.getNumeroFactura(),
                 fechaActual,
-                total.toString(),
-                iva.toString(),
+                Long.toString(total),
+                Long.toString(iva),
                 "CLAVE-TECNICA-PRUEBA"
         );
 
