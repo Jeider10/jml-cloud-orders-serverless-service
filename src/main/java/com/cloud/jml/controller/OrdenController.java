@@ -62,7 +62,7 @@ public class OrdenController {
 
     @PatchMapping("/cliente/orden/cerrar/{identificacionCliente}")
     public ResponseEntity<OrdenResponseDTO> cerrarOrdenPorCliente(
-            @PathVariable Long identificacionCliente,
+            @PathVariable String identificacionCliente,
             @RequestParam(value = "valorRecibido", required = false, defaultValue = "0") Long valorRecibido) {
 
         log.info("📥 [SOLICITUD] Solicitud para cerrar orden del cliente con identificacion: {} | valorRecibido: {}", identificacionCliente, valorRecibido);
@@ -102,7 +102,7 @@ public class OrdenController {
 
     @GetMapping("/list/cliente")
     public ResponseEntity<List<OrdenResponseDTO>> listarOrdenesPorClienteYEstado(
-            @RequestParam("cliente") Long identificacionCliente,
+            @RequestParam("cliente") String identificacionCliente,
             @RequestParam("estado") String estadoOrden) {
 
         log.info("📥 [SOLICITUD] Solicitud para listar ordenes del cliente: {} con estado: {}", identificacionCliente, estadoOrden);
@@ -136,7 +136,7 @@ public class OrdenController {
     @DeleteMapping("/delete/{numeroOrden}")
     public ResponseEntity<Void> eliminarOrdenCliente(
             @PathVariable String numeroOrden,
-            @RequestParam("cliente") Long identificacionCliente) {
+            @RequestParam("cliente") String identificacionCliente) {
 
         log.info("📥 [SOLICITUD] Solicitud para eliminar orden -> numeroOrden: {}, cliente: {}", numeroOrden, identificacionCliente);
 
@@ -151,9 +151,9 @@ public class OrdenController {
     public ResponseEntity<List<OrdenResponseDTO>> buscarOrdenes(
             @RequestParam(value = "estado", required = false) String estado,
             @RequestParam(value = "cliente", required = false) String cliente,
-            @RequestParam(value = "idCliente", required = false) Long idCliente,
+            @RequestParam(value = "idCliente", required = false) String idCliente,
             @RequestParam(value = "vendedor", required = false) String vendedor,
-            @RequestParam(value = "idVendedor", required = false) Long idVendedor,
+            @RequestParam(value = "idVendedor", required = false) String idVendedor,
             @RequestParam(value = "factura", required = false) String factura,
             @RequestParam(value = "producto", required = false) String producto,
             @RequestParam(value = "fechaInicio", required = false) String fechaInicio,
@@ -191,7 +191,7 @@ public class OrdenController {
     }
 
     @GetMapping("/buscar/idCliente")
-    public ResponseEntity<List<OrdenResponseDTO>> buscarPorIdCliente(@RequestParam("idCliente") Long idCliente) {
+    public ResponseEntity<List<OrdenResponseDTO>> buscarPorIdCliente(@RequestParam("idCliente") String idCliente) {
         log.info("📥 [SOLICITUD] Buscar ordenes por ID cliente: {}", idCliente);
 
         List<OrdenResponseDTO> ordenes = ordenService.buscarPorIdCliente(idCliente);
@@ -223,7 +223,7 @@ public class OrdenController {
     }
 
     @GetMapping("/buscar/idVendedor")
-    public ResponseEntity<List<OrdenResponseDTO>> buscarPorIdVendedor(@RequestParam("idVendedor") Long idVendedor) {
+    public ResponseEntity<List<OrdenResponseDTO>> buscarPorIdVendedor(@RequestParam("idVendedor") String idVendedor) {
         log.info("📥 [SOLICITUD] Buscar ordenes por ID vendedor: {}", idVendedor);
 
         List<OrdenResponseDTO> ordenes = ordenService.buscarPorIdVendedor(idVendedor);

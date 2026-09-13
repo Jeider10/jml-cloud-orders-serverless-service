@@ -9,7 +9,8 @@ import java.util.Optional;
 
 public interface OrdenRepository extends JpaRepository<OrdenEntity, String> {
 
-    Optional<OrdenEntity> findFirstByIdentificacionClienteAndEstadoOrden(Long identificacionCliente, String estadoOrden);
+    // identificacionCliente es ahora String (soporta "CONSUMIDOR FINAL" y numeros)
+    Optional<OrdenEntity> findFirstByIdentificacionClienteAndEstadoOrden(String identificacionCliente, String estadoOrden);
 
     Optional<OrdenEntity> findByNumeroOrdenAndEstadoOrden(String numeroOrden, String estadoOrden);
 
@@ -17,9 +18,9 @@ public interface OrdenRepository extends JpaRepository<OrdenEntity, String> {
 
     List<OrdenEntity> findByEstadoOrdenOrderByFechaCreacionAsc(String estadoOrden);
 
-    List<OrdenEntity> findByIdentificacionClienteAndEstadoOrden(Long identificacionCliente, String estadoOrden);
+    List<OrdenEntity> findByIdentificacionClienteAndEstadoOrden(String identificacionCliente, String estadoOrden);
 
-    Optional<OrdenEntity> findByNumeroOrdenAndIdentificacionCliente(String numeroOrden, Long identificacionCliente);
+    Optional<OrdenEntity> findByNumeroOrdenAndIdentificacionCliente(String numeroOrden, String identificacionCliente);
 
     List<OrdenEntity> findByFechaCreacionBetween(LocalDateTime inicio, LocalDateTime fin);
 
@@ -29,11 +30,11 @@ public interface OrdenRepository extends JpaRepository<OrdenEntity, String> {
 
     List<OrdenEntity> findByNombreClienteContainingIgnoreCaseOrderByFechaCreacionAsc(String nombreCliente);
 
-    List<OrdenEntity> findByIdentificacionClienteOrderByFechaCreacionAsc(Long identificacionCliente);
+    List<OrdenEntity> findByIdentificacionClienteOrderByFechaCreacionAsc(String identificacionCliente);
 
     List<OrdenEntity> findByNombreEmpleadoContainingIgnoreCaseOrderByFechaCreacionAsc(String nombreEmpleado);
 
-    List<OrdenEntity> findByIdentificacionEmpleadoOrderByFechaCreacionAsc(Long identificacionEmpleado);
+    List<OrdenEntity> findByIdentificacionEmpleadoOrderByFechaCreacionAsc(String identificacionEmpleado);
 
     List<OrdenEntity> findByNumeroFacturaContainingIgnoreCaseOrderByFechaCreacionAsc(String numeroFactura);
 }

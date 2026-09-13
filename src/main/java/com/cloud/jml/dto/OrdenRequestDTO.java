@@ -1,6 +1,5 @@
 package com.cloud.jml.dto;
 
-import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -15,9 +14,8 @@ import java.util.List;
 @AllArgsConstructor // Constructor con todos los argumentos
 public class OrdenRequestDTO {
 
-    // FIX: Se agregaron validaciones Jakarta Bean Validation para evitar datos invalidos
-    @NotNull(message = "La identificacion del cliente es obligatoria")
-    private Long identificacionCliente;
+    // identificacionCliente es opcional — si no se proporciona se usa "CONSUMIDOR FINAL"
+    private String identificacionCliente;
 
     //    @NotBlank(message = "El campo 'nombreCliente' es obligatorio")
     @Size(max = 100, message = "El campo 'nombreCliente' no puede exceder 100 caracteres")
@@ -27,7 +25,7 @@ public class OrdenRequestDTO {
     @Size(max = 100, message = "El campo 'apellidoCliente' no puede exceder 100 caracteres")
     private String apellidoCliente;
 
-    private Long identificacionEmpleado;
+    private String identificacionEmpleado;
 
     @Size(max = 100, message = "El campo 'nombreEmpleado' no puede exceder 100 caracteres")
     private String nombreEmpleado;
@@ -39,6 +37,9 @@ public class OrdenRequestDTO {
 
     @Size(max = 100, message = "El campo 'nombreProveedor' no puede exceder 100 caracteres")
     private String nombreProveedor;
+
+    // Si viene informado, se agrega el detalle a esa orden específica en lugar de buscar por cliente
+    private String numeroOrden;
 
     private List<OrdenDetalleRequestDTO> detalles;
 }

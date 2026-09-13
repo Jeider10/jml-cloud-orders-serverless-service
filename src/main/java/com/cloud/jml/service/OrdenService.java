@@ -71,19 +71,33 @@ public class OrdenService {
     public OrdenResponseDTO crearOrdenDeVenta(OrdenRequestDTO ordenRequestDTO) {
         log.info("🔍 [CONSULTA] Verificando si el cliente {} tiene una orden ABIERTA", ordenRequestDTO.getIdentificacionCliente());
 
-        Optional<OrdenEntity> ordenExistente = ordenRepository
-                .findFirstByIdentificacionClienteAndEstadoOrden(ordenRequestDTO.getIdentificacionCliente(), ESTADO_ABIERTA);
-
         OrdenEntity ordenEntity;
 
-        if (ordenExistente.isPresent()) {
-            // Caso: Agregar detalles a orden existente
-            ordenEntity = ordenExistente.get();
-            log.warn("⚠️ [RESULTADO] Ya existe una orden ABIERTA para el cliente {}. Se agregaran los nuevos detalles.", ordenRequestDTO.getIdentificacionCliente());
-            ordenUtils.agregarDetallesOrdenExistente(ordenEntity, ordenRequestDTO);
+        // Si viene un numeroOrden específico, buscar esa orden directamente y agregarle los detalles
+        if (ordenRequestDTO.getNumeroOrden() != null && !ordenRequestDTO.getNumeroOrden().isBlank()) {
+            Optional<OrdenEntity> ordenPorNumero = ordenRepository
+                    .findByNumeroOrdenAndEstadoOrden(ordenRequestDTO.getNumeroOrden(), ESTADO_ABIERTA);
+            if (ordenPorNumero.isPresent()) {
+                ordenEntity = ordenPorNumero.get();
+                log.info("📋 [ENCONTRADA] Orden encontrada por numeroOrden: {}. Agregando nuevos detalles.", ordenRequestDTO.getNumeroOrden());
+                ordenUtils.agregarDetallesOrdenExistente(ordenEntity, ordenRequestDTO);
+            } else {
+                log.warn("⚠️ [NO ENCONTRADA] No existe orden ABIERTA con numeroOrden: {}. Creando nueva.", ordenRequestDTO.getNumeroOrden());
+                ordenEntity = ordenUtils.crearNuevaOrden(ordenRequestDTO);
+            }
         } else {
-            log.info("🆕 [CREACION] No se encontro orden ABIERTA para el cliente {}. Creando nueva orden.", ordenRequestDTO.getIdentificacionCliente());
-            ordenEntity = ordenUtils.crearNuevaOrden(ordenRequestDTO);
+            // Sin numeroOrden: buscar por cliente como antes
+            Optional<OrdenEntity> ordenExistente = ordenRepository
+                    .findFirstByIdentificacionClienteAndEstadoOrden(ordenRequestDTO.getIdentificacionCliente(), ESTADO_ABIERTA);
+
+            if (ordenExistente.isPresent()) {
+                ordenEntity = ordenExistente.get();
+                log.warn("⚠️ [RESULTADO] Ya existe una orden ABIERTA para el cliente {}. Se agregaran los nuevos detalles.", ordenRequestDTO.getIdentificacionCliente());
+                ordenUtils.agregarDetallesOrdenExistente(ordenEntity, ordenRequestDTO);
+            } else {
+                log.info("🆕 [CREACION] No se encontro orden ABIERTA para el cliente {}. Creando nueva orden.", ordenRequestDTO.getIdentificacionCliente());
+                ordenEntity = ordenUtils.crearNuevaOrden(ordenRequestDTO);
+            }
         }
 
         OrdenEntity guardarOrden = ordenUtils.guardarOrdenBD(ordenEntity);
@@ -158,7 +172,7 @@ public class OrdenService {
     }
 
     @Transactional
-    public OrdenResponseDTO cerrarOrdenPorCliente(Long identificacionCliente, Long valorRecibido) {
+    public OrdenResponseDTO cerrarOrdenPorCliente(String identificacionCliente, Long valorRecibido) {
         log.info("🔍 [CONSULTA] Buscando orden ABIERTA del cliente con identificacion: {}", identificacionCliente);
 
         Optional<OrdenEntity> ordenOpt = ordenRepository.findFirstByIdentificacionClienteAndEstadoOrden(identificacionCliente, ESTADO_ABIERTA);
@@ -224,7 +238,7 @@ public class OrdenService {
     }
 
     @Transactional(readOnly = true)
-    public List<OrdenResponseDTO> listarOrdenesPorClienteYEstado(Long identificacionCliente, String estadoOrden) {
+    public List<OrdenResponseDTO> listarOrdenesPorClienteYEstado(String identificacionCliente, String estadoOrden) {
         log.info("🔍 [CONSULTA] Recuperando ordenes del cliente: {} con estado: {}", identificacionCliente, estadoOrden);
 
         List<OrdenEntity> ordenes = ordenRepository.findByIdentificacionClienteAndEstadoOrden(identificacionCliente, estadoOrden);
@@ -276,7 +290,7 @@ public class OrdenService {
     }
 
     @Transactional
-    public void eliminarOrdenCliente(String numeroOrden, Long identificacionCliente) {
+    public void eliminarOrdenCliente(String numeroOrden, String identificacionCliente) {
         log.info("🔍 [CONSULTA] Buscando orden numero: {} para cliente: {}", numeroOrden, identificacionCliente);
 
         Optional<OrdenEntity> ordenOptional = ordenRepository.findByNumeroOrdenAndIdentificacionCliente(numeroOrden, identificacionCliente);
@@ -303,7 +317,7 @@ public class OrdenService {
 
     @Transactional
     public OrdenResponseDTO cerrarOrdenConPagosMixtos(CerrarOrdenRequestDTO cerrarRequest) {
-        Long identificacionCliente = cerrarRequest.getIdentificacionCliente();
+        String identificacionCliente = cerrarRequest.getIdentificacionCliente();
         log.info("🔍 [CONSULTA] Buscando orden para cierre con pagos mixtos. Cliente: {}, NumeroOrden: {}",
                 identificacionCliente, cerrarRequest.getNumeroOrden());
 
@@ -434,7 +448,7 @@ public class OrdenService {
     }
 
     @Transactional(readOnly = true)
-    public List<OrdenResponseDTO> buscarPorIdCliente(Long idCliente) {
+    public List<OrdenResponseDTO> buscarPorIdCliente(String idCliente) {
         log.info("🔍 [CONSULTA] Buscar ordenes por ID cliente: {}", idCliente);
 
         List<OrdenEntity> ordenes = ordenRepository.findByIdentificacionClienteOrderByFechaCreacionAsc(idCliente);
@@ -474,9 +488,8 @@ public class OrdenService {
     }
 
     @Transactional(readOnly = true)
-    public List<OrdenResponseDTO> buscarPorIdVendedor(Long idVendedor) {
+    public List<OrdenResponseDTO> buscarPorIdVendedor(String idVendedor) {
         log.info("🔍 [CONSULTA] Buscar ordenes por ID vendedor: {}", idVendedor);
-
         List<OrdenEntity> ordenes = ordenRepository.findByIdentificacionEmpleadoOrderByFechaCreacionAsc(idVendedor);
 
         if (ordenes.isEmpty()) {
@@ -542,23 +555,23 @@ public class OrdenService {
     }
 
     @Transactional(readOnly = true)
-    public List<OrdenResponseDTO> buscarOrdenes(String estado, String cliente, Long idCliente,
-                                                String vendedor, Long idVendedor, String factura,
+    public List<OrdenResponseDTO> buscarOrdenes(String estado, String cliente, String idCliente,
+                                                String vendedor, String idVendedor, String factura,
                                                 String producto, String fechaInicio, String fechaFin) {
         log.info("🔍 [CONSULTA] Busqueda con filtros multiples");
 
         List<OrdenEntity> ordenes;
 
-        // Priorizar filtros más específicos
+        // Priorizar filtros mas especificos
         if (fechaInicio != null && !fechaInicio.isBlank() && fechaFin != null && !fechaFin.isBlank()) {
             LocalDateTime inicio = ordenUtils.parsearFechaInicio(fechaInicio);
             LocalDateTime fin = ordenUtils.parsearFechaFin(fechaFin);
             ordenes = ordenRepository.findByFechaCreacionBetweenOrderByFechaCreacionAsc(inicio, fin);
-        } else if (idVendedor != null) {
+        } else if (idVendedor != null && !idVendedor.isBlank()) {
             ordenes = ordenRepository.findByIdentificacionEmpleadoOrderByFechaCreacionAsc(idVendedor);
         } else if (vendedor != null && !vendedor.isBlank()) {
             ordenes = ordenRepository.findByNombreEmpleadoContainingIgnoreCaseOrderByFechaCreacionAsc(vendedor);
-        } else if (idCliente != null) {
+        } else if (idCliente != null && !idCliente.isBlank()) {
             ordenes = ordenRepository.findByIdentificacionClienteOrderByFechaCreacionAsc(idCliente);
         } else if (cliente != null && !cliente.isBlank()) {
             ordenes = ordenRepository.findByNombreClienteContainingIgnoreCaseOrderByFechaCreacionAsc(cliente);

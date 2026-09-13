@@ -30,11 +30,11 @@ public class OrdenResponseDTO {
     // 🔹 Comentario/Observacion
     private String comentario;
 
-    private Long identificacionCliente;
+    private String identificacionCliente;
     private String nombreCliente;
     private String apellidoCliente;
 
-    private Long identificacionEmpleado;
+    private String identificacionEmpleado;
     private String nombreEmpleado;
     private String apellidoEmpleado;
 

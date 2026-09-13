@@ -25,11 +25,11 @@ public class OrdenEntity {
     private String estadoOrden;
     private String numeroFactura;
 
-    private Long identificacionCliente;
+    private String identificacionCliente;
     private String nombreCliente;
     private String apellidoCliente;
 
-    private Long identificacionEmpleado;
+    private String identificacionEmpleado;
     private String nombreEmpleado;
     private String apellidoEmpleado;
 

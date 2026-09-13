@@ -1,6 +1,5 @@
 package com.cloud.jml.dto;
 
-import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -15,8 +14,8 @@ import java.util.List;
 @AllArgsConstructor
 public class CerrarOrdenRequestDTO {
 
-    @NotNull(message = "La identificacion del cliente es obligatoria")
-    private Long identificacionCliente;
+    // identificacionCliente es opcional — si no se proporciona se usa "CONSUMIDOR FINAL"
+    private String identificacionCliente;
 
     // 🔹 Numero de orden especifico (para cerrar una orden PENDIENTE especifica)
     private String numeroOrden;
