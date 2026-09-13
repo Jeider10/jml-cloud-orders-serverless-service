@@ -1,10 +1,6 @@
 package com.cloud.jml.utils.orders;
 
-import com.cloud.jml.dto.OrdenDetalleRequestDTO;
-import com.cloud.jml.dto.OrdenDetalleResponseDTO;
-import com.cloud.jml.dto.OrdenPagoResponseDTO;
-import com.cloud.jml.dto.OrdenRequestDTO;
-import com.cloud.jml.dto.OrdenResponseDTO;
+import com.cloud.jml.dto.*;
 import com.cloud.jml.model.OrdenDetalleEntity;
 import com.cloud.jml.model.OrdenEntity;
 import com.cloud.jml.model.OrdenPagoEntity;
@@ -146,6 +142,7 @@ public class OrdenMapper {
         log.debug("📦 [MAPEO] Mapeando Orden detalle Entity -> DTO: codigo={}, producto={}", detalleEntity.getCodigo(), detalleEntity.getProducto());
 
         OrdenDetalleResponseDTO responseDTO = new OrdenDetalleResponseDTO();
+        responseDTO.setId(detalleEntity.getId());
         responseDTO.setCodigo(detalleEntity.getCodigo());
         responseDTO.setProducto(detalleEntity.getProducto());
         responseDTO.setDescripcion(detalleEntity.getDescripcion());

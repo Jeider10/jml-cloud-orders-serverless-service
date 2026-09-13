@@ -11,6 +11,7 @@ import lombok.Setter;
 @AllArgsConstructor // Constructor con todos los argumentos
 public class OrdenDetalleResponseDTO {
 
+    private Long id;
     private Long codigo;
     private String producto;
     private String descripcion;

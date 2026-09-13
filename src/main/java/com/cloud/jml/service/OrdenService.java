@@ -7,6 +7,7 @@ import com.cloud.jml.dto.OrdenResponseDTO;
 import com.cloud.jml.exception.cantidad.CantidadInvalidaException;
 import com.cloud.jml.exception.orders.OrdenNoEncontradaException;
 import com.cloud.jml.exception.orders.OrdenPorClienteNoEncontradaException;
+import com.cloud.jml.exception.producto.ProductoNoEncontradoException;
 import com.cloud.jml.exception.stock.StockInsuficienteException;
 import com.cloud.jml.model.OrdenDetalleEntity;
 import com.cloud.jml.model.OrdenEntity;
@@ -73,7 +74,7 @@ public class OrdenService {
 
         OrdenEntity ordenEntity;
 
-        // Si viene un numeroOrden específico, buscar esa orden directamente y agregarle los detalles
+        // Si viene un numeroOrden especifico, buscar esa orden directamente y agregarle los detalles
         if (ordenRequestDTO.getNumeroOrden() != null && !ordenRequestDTO.getNumeroOrden().isBlank()) {
             Optional<OrdenEntity> ordenPorNumero = ordenRepository
                     .findByNumeroOrdenAndEstadoOrden(ordenRequestDTO.getNumeroOrden(), ESTADO_ABIERTA);
@@ -86,18 +87,11 @@ public class OrdenService {
                 ordenEntity = ordenUtils.crearNuevaOrden(ordenRequestDTO);
             }
         } else {
-            // Sin numeroOrden: buscar por cliente como antes
-            Optional<OrdenEntity> ordenExistente = ordenRepository
-                    .findFirstByIdentificacionClienteAndEstadoOrden(ordenRequestDTO.getIdentificacionCliente(), ESTADO_ABIERTA);
-
-            if (ordenExistente.isPresent()) {
-                ordenEntity = ordenExistente.get();
-                log.warn("⚠️ [RESULTADO] Ya existe una orden ABIERTA para el cliente {}. Se agregaran los nuevos detalles.", ordenRequestDTO.getIdentificacionCliente());
-                ordenUtils.agregarDetallesOrdenExistente(ordenEntity, ordenRequestDTO);
-            } else {
-                log.info("🆕 [CREACION] No se encontro orden ABIERTA para el cliente {}. Creando nueva orden.", ordenRequestDTO.getIdentificacionCliente());
-                ordenEntity = ordenUtils.crearNuevaOrden(ordenRequestDTO);
-            }
+            // Sin numeroOrden: crear siempre una nueva orden.
+            // La logica de "agregar a orden existente" la gestiona el frontend mediante el modal
+            // de confirmacion, que envia el numeroOrden de la orden elegida por el usuario.
+            log.info("🆕 [CREACION] No viene numeroOrden. Creando nueva orden para cliente: {}", ordenRequestDTO.getIdentificacionCliente());
+            ordenEntity = ordenUtils.crearNuevaOrden(ordenRequestDTO);
         }
 
         OrdenEntity guardarOrden = ordenUtils.guardarOrdenBD(ordenEntity);
@@ -168,6 +162,95 @@ public class OrdenService {
 
         log.info("✅ [FINALIZADO] Operacion completada exitosamente. numeroOrden: {}", ordenResponseDTO.getNumeroOrden());
 
+        return ordenResponseDTO;
+    }
+
+    /**
+     * Resta cantidad (o elimina) un detalle de orden buscando por el ID único del detalle.
+     * Esto permite manejar correctamente múltiples filas del mismo producto en una orden.
+     */
+    @Transactional
+    public OrdenResponseDTO restarCantidadPorIdDetalle(String numeroOrden, Long idDetalle, int cantidadARestar) {
+        log.info("🔍 [CONSULTA] Verificando existencia de orden ABIERTA con numeroOrden: {} para detalle id: {}", numeroOrden, idDetalle);
+
+        Optional<OrdenEntity> ordenOpt = ordenRepository.findByNumeroOrdenAndEstadoOrden(numeroOrden, ESTADO_ABIERTA);
+        if (ordenOpt.isEmpty()) {
+            log.warn("❌ [ERROR] No se encontro una orden ABIERTA con numeroOrden: {}", numeroOrden);
+            throw new OrdenNoEncontradaException(numeroOrden);
+        }
+
+        OrdenEntity orden = ordenOpt.get();
+
+        // Buscar el detalle por su ID único (no por código)
+        OrdenDetalleEntity detalle = orden.getDetalles().stream()
+                .filter(d -> idDetalle.equals(d.getId()))
+                .findFirst()
+                .orElseThrow(() -> {
+                    log.warn("❌ [ERROR] No se encontro detalle con id: {} en orden: {}", idDetalle, numeroOrden);
+                    return new ProductoNoEncontradoException(idDetalle);
+                });
+
+        if (cantidadARestar <= 0) {
+            throw new CantidadInvalidaException(cantidadARestar);
+        }
+
+        long cantidadActual = ordenUtils.obtenerCantidadActual(detalle);
+        long nuevaCantidad = Math.max(0, cantidadActual - cantidadARestar);
+        log.info("📦 [CALCULO] Detalle id={}, cantidad {} - {} = {}", idDetalle, cantidadActual, cantidadARestar, nuevaCantidad);
+
+        mapper.actualizarOEliminarDetalle(orden, detalle, detalle.getCodigo(), cantidadARestar, nuevaCantidad);
+        ordenUtils.recalcularTotalCompra(orden);
+
+        OrdenEntity actualizado = ordenUtils.guardarOrdenBD(orden);
+        log.info("💾 [PERSISTENCIA] Orden actualizada. numeroOrden: {}", actualizado.getNumeroOrden());
+
+        OrdenResponseDTO ordenResponseDTO = mapper.mapEntityToResponseDto(actualizado);
+        log.info("✅ [FINALIZADO] Operacion por idDetalle completada. numeroOrden: {}", ordenResponseDTO.getNumeroOrden());
+        return ordenResponseDTO;
+    }
+
+    /**
+     * Suma cantidad a un detalle específico por su ID único.
+     * Permite incrementar la cantidad de una fila concreta sin afectar otras filas del mismo producto.
+     */
+    @Transactional
+    public OrdenResponseDTO sumarCantidadPorIdDetalle(String numeroOrden, Long idDetalle, int cantidadASumar) {
+        log.info("🔍 [CONSULTA] Sumando cantidad al detalle id: {} en orden: {}", idDetalle, numeroOrden);
+
+        Optional<OrdenEntity> ordenOpt = ordenRepository.findByNumeroOrdenAndEstadoOrden(numeroOrden, ESTADO_ABIERTA);
+        if (ordenOpt.isEmpty()) {
+            log.warn("❌ [ERROR] No se encontro una orden ABIERTA con numeroOrden: {}", numeroOrden);
+            throw new OrdenNoEncontradaException(numeroOrden);
+        }
+
+        OrdenEntity orden = ordenOpt.get();
+
+        // Buscar el detalle por su ID único
+        OrdenDetalleEntity detalle = orden.getDetalles().stream()
+                .filter(d -> idDetalle.equals(d.getId()))
+                .findFirst()
+                .orElseThrow(() -> {
+                    log.warn("❌ [ERROR] No se encontro detalle con id: {} en orden: {}", idDetalle, numeroOrden);
+                    return new ProductoNoEncontradoException(idDetalle);
+                });
+
+        if (cantidadASumar <= 0) {
+            throw new CantidadInvalidaException(cantidadASumar);
+        }
+
+        long cantidadActual = ordenUtils.obtenerCantidadActual(detalle);
+        long nuevaCantidad = cantidadActual + cantidadASumar;
+        detalle.setCantidad(nuevaCantidad);
+        detalle.setFechaActualizacion(java.time.LocalDateTime.now());
+        log.info("📦 [CALCULO] Detalle id={}, cantidad {} + {} = {}", idDetalle, cantidadActual, cantidadASumar, nuevaCantidad);
+
+        ordenUtils.recalcularTotalCompra(orden);
+
+        OrdenEntity actualizado = ordenUtils.guardarOrdenBD(orden);
+        log.info("💾 [PERSISTENCIA] Orden actualizada tras sumar. numeroOrden: {}", actualizado.getNumeroOrden());
+
+        OrdenResponseDTO ordenResponseDTO = mapper.mapEntityToResponseDto(actualizado);
+        log.info("✅ [FINALIZADO] Suma por idDetalle completada. numeroOrden: {}", ordenResponseDTO.getNumeroOrden());
         return ordenResponseDTO;
     }
 

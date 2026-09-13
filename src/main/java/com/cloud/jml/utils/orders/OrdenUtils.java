@@ -44,13 +44,15 @@ public class OrdenUtils {
             LocalDateTime res = LocalDateTime.parse(fecha, DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
             log.info("✅ [PARSEADO] Fecha inicio procesada (Formato Completo): {}", res);
             return res;
-        } catch (DateTimeParseException ignored) {}
+        } catch (DateTimeParseException ignored) {
+        }
 
         try {
             LocalDateTime res = LocalDateTime.parse(fecha);
             log.info("✅ [PARSEADO] Fecha inicio procesada (ISO): {}", res);
             return res;
-        } catch (DateTimeParseException ignored) {}
+        } catch (DateTimeParseException ignored) {
+        }
 
         try {
             LocalDate localDate = LocalDate.parse(fecha, DateTimeFormatter.ofPattern("yyyy-MM-dd"));
@@ -74,13 +76,15 @@ public class OrdenUtils {
             LocalDateTime res = LocalDateTime.parse(fecha, DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
             log.info("✅ [PARSEADO] Fecha fin procesada (Formato Completo): {}", res);
             return res;
-        } catch (DateTimeParseException ignored) {}
+        } catch (DateTimeParseException ignored) {
+        }
 
         try {
             LocalDateTime res = LocalDateTime.parse(fecha);
             log.info("✅ [PARSEADO] Fecha fin procesada (ISO): {}", res);
             return res;
-        } catch (DateTimeParseException ignored) {}
+        } catch (DateTimeParseException ignored) {
+        }
 
         try {
             LocalDate localDate = LocalDate.parse(fecha, DateTimeFormatter.ofPattern("yyyy-MM-dd"));
@@ -206,16 +210,20 @@ public class OrdenUtils {
 
     /**
      * Agrega detalles a una orden existente y recalcula total.
+     * Siempre crea una nueva entrada por ítem — la consolidación se maneja
+     * explícitamente desde el frontend con los botones +/- de la tabla.
      */
     public void agregarDetallesOrdenExistente(OrdenEntity ordenEntity, OrdenRequestDTO requestDTO) {
         log.info("🗂️ [SOLICITUD] Agregando detalles a orden existente: {}", ordenEntity.getNumeroOrden());
 
         if (requestDTO.getDetalles() != null && !requestDTO.getDetalles().isEmpty()) {
             for (var detalleDTO : requestDTO.getDetalles()) {
+                // Siempre agregar como nueva entrada independiente
                 OrdenDetalleEntity detalleEntity = mapper.mapDetalleRequestToEntity(detalleDTO);
                 detalleEntity.setOrden(ordenEntity);
                 detalleEntity.setFechaCreacion(LocalDateTime.now());
                 ordenEntity.getDetalles().add(detalleEntity);
+                log.info("➕ [NUEVA ENTRADA] Producto codigo={} agregado como nueva fila a la orden", detalleDTO.getCodigo());
             }
         } else {
             log.warn("⚠️ [FINALIZADO] No hay detalles en request para agregar a la orden: {}", ordenEntity.getNumeroOrden());

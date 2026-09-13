@@ -60,6 +60,36 @@ public class OrdenController {
         return ResponseEntity.ok(ordenActualizada);
     }
 
+    @PutMapping("/restar-detalle/{numeroOrden}")
+    public ResponseEntity<OrdenResponseDTO> restarCantidadPorIdDetalle(
+            @PathVariable("numeroOrden") String numeroOrden,
+            @RequestParam("idDetalle") Long idDetalle,
+            @RequestParam("cantidad") int cantidadARestar) {
+
+        log.info("📥 [SOLICITUD] Restar detalle por id -> numeroOrden: {}, idDetalle: {}, cantidadARestar: {}", numeroOrden, idDetalle, cantidadARestar);
+
+        OrdenResponseDTO ordenActualizada = ordenService.restarCantidadPorIdDetalle(numeroOrden, idDetalle, cantidadARestar);
+
+        log.info("📤 [RESPUESTA] Orden actualizada exitosamente luego de restar detalle id: {}", idDetalle);
+
+        return ResponseEntity.ok(ordenActualizada);
+    }
+
+    @PutMapping("/sumar-detalle/{numeroOrden}")
+    public ResponseEntity<OrdenResponseDTO> sumarCantidadPorIdDetalle(
+            @PathVariable("numeroOrden") String numeroOrden,
+            @RequestParam("idDetalle") Long idDetalle,
+            @RequestParam("cantidad") int cantidadASumar) {
+
+        log.info("📥 [SOLICITUD] Sumar detalle por id -> numeroOrden: {}, idDetalle: {}, cantidadASumar: {}", numeroOrden, idDetalle, cantidadASumar);
+
+        OrdenResponseDTO ordenActualizada = ordenService.sumarCantidadPorIdDetalle(numeroOrden, idDetalle, cantidadASumar);
+
+        log.info("📤 [RESPUESTA] Orden actualizada exitosamente luego de sumar detalle id: {}", idDetalle);
+
+        return ResponseEntity.ok(ordenActualizada);
+    }
+
     @PatchMapping("/cliente/orden/cerrar/{identificacionCliente}")
     public ResponseEntity<OrdenResponseDTO> cerrarOrdenPorCliente(
             @PathVariable String identificacionCliente,

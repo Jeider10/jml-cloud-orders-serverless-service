@@ -38,7 +38,7 @@ public class OrdenRequestDTO {
     @Size(max = 100, message = "El campo 'nombreProveedor' no puede exceder 100 caracteres")
     private String nombreProveedor;
 
-    // Si viene informado, se agrega el detalle a esa orden específica en lugar de buscar por cliente
+    // Si viene informado, se agrega el detalle a esa orden especifica en lugar de buscar por cliente
     private String numeroOrden;
 
     private List<OrdenDetalleRequestDTO> detalles;
