@@ -595,14 +595,17 @@ public class OrdenService {
             }
         }
 
-        // Guardar valor recibido total
-        orden.setValorRecibido(cerrarRequest.getValorRecibido());
+        // Acumular valor recibido: sumar el nuevo abono al ya existente
+        Long valorAnterior = orden.getValorRecibido() != null ? orden.getValorRecibido() : 0L;
+        Long nuevoAbono = cerrarRequest.getValorRecibido() != null ? cerrarRequest.getValorRecibido() : 0L;
+        Long valorAcumulado = valorAnterior + nuevoAbono;
+        orden.setValorRecibido(valorAcumulado);
 
         // 🔹 Determinar estado: PENDIENTE si pago insuficiente, CERRADA si pago completo
         Long totalCompra = orden.getTotalCompra() != null ? orden.getTotalCompra() : 0L;
         Long descuentoApl = orden.getDescuentoAplicado() != null ? orden.getDescuentoAplicado() : 0L;
         Long totalAPagar = totalCompra - descuentoApl;
-        Long valorRecibido = cerrarRequest.getValorRecibido() != null ? cerrarRequest.getValorRecibido() : 0L;
+        Long valorRecibido = valorAcumulado;
 
         if (valorRecibido < totalAPagar) {
             // Pago insuficiente → estado PENDIENTE
