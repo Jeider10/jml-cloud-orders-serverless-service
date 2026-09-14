@@ -14,6 +14,8 @@ public interface OrdenRepository extends JpaRepository<OrdenEntity, String> {
 
     Optional<OrdenEntity> findByNumeroOrdenAndEstadoOrden(String numeroOrden, String estadoOrden);
 
+    Optional<OrdenEntity> findByNumeroOrdenAndEstadoOrdenIn(String numeroOrden, List<String> estados);
+
     List<OrdenEntity> findByEstadoOrden(String estadoOrden);
 
     List<OrdenEntity> findByEstadoOrdenOrderByFechaCreacionAsc(String estadoOrden);

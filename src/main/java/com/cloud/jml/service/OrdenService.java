@@ -76,13 +76,13 @@ public class OrdenService {
         // Si viene un numeroOrden especifico, buscar esa orden directamente y agregarle los detalles
         if (ordenRequestDTO.getNumeroOrden() != null && !ordenRequestDTO.getNumeroOrden().isBlank()) {
             Optional<OrdenEntity> ordenPorNumero = ordenRepository
-                    .findByNumeroOrdenAndEstadoOrden(ordenRequestDTO.getNumeroOrden(), ESTADO_ABIERTA);
+                    .findByNumeroOrdenAndEstadoOrdenIn(ordenRequestDTO.getNumeroOrden(), List.of(ESTADO_ABIERTA, "PENDIENTE"));
             if (ordenPorNumero.isPresent()) {
                 ordenEntity = ordenPorNumero.get();
                 log.info("📋 [ENCONTRADA] Orden encontrada por numeroOrden: {}. Agregando nuevos detalles.", ordenRequestDTO.getNumeroOrden());
                 ordenUtils.agregarDetallesOrdenExistente(ordenEntity, ordenRequestDTO);
             } else {
-                log.warn("⚠️ [NO ENCONTRADA] No existe orden ABIERTA con numeroOrden: {}. Creando nueva.", ordenRequestDTO.getNumeroOrden());
+                log.warn("⚠️ [NO ENCONTRADA] No existe orden ABIERTA/PENDIENTE con numeroOrden: {}. Creando nueva.", ordenRequestDTO.getNumeroOrden());
                 ordenEntity = ordenUtils.crearNuevaOrden(ordenRequestDTO);
             }
         } else {
@@ -109,11 +109,11 @@ public class OrdenService {
     public OrdenResponseDTO restarCantidadProducto(String numeroOrden, Long codigoProducto, int cantidadARestar) {
         log.info("🔍 [CONSULTA] Verificando existencia de orden ABIERTA con numeroOrden: {}", numeroOrden);
 
-        // 1) Buscar la orden ABIERTA
-        Optional<OrdenEntity> ordenOpt = ordenRepository.findByNumeroOrdenAndEstadoOrden(numeroOrden, ESTADO_ABIERTA);
+        // 1) Buscar la orden ABIERTA o PENDIENTE
+        Optional<OrdenEntity> ordenOpt = ordenRepository.findByNumeroOrdenAndEstadoOrdenIn(numeroOrden, List.of(ESTADO_ABIERTA, "PENDIENTE"));
 
         if (ordenOpt.isEmpty()) {
-            log.warn("❌ [ERROR] No se encontro una orden ABIERTA con numeroOrden: {}", numeroOrden);
+            log.warn("❌ [ERROR] No se encontro una orden ABIERTA/PENDIENTE con numeroOrden: {}", numeroOrden);
             throw new OrdenNoEncontradaException(numeroOrden);
         }
 
@@ -170,11 +170,11 @@ public class OrdenService {
      */
     @Transactional
     public OrdenResponseDTO restarCantidadPorIdDetalle(String numeroOrden, Long idDetalle, int cantidadARestar) {
-        log.info("🔍 [CONSULTA] Verificando existencia de orden ABIERTA con numeroOrden: {} para detalle id: {}", numeroOrden, idDetalle);
+        log.info("🔍 [CONSULTA] Verificando existencia de orden ABIERTA/PENDIENTE con numeroOrden: {} para detalle id: {}", numeroOrden, idDetalle);
 
-        Optional<OrdenEntity> ordenOpt = ordenRepository.findByNumeroOrdenAndEstadoOrden(numeroOrden, ESTADO_ABIERTA);
+        Optional<OrdenEntity> ordenOpt = ordenRepository.findByNumeroOrdenAndEstadoOrdenIn(numeroOrden, List.of(ESTADO_ABIERTA, "PENDIENTE"));
         if (ordenOpt.isEmpty()) {
-            log.warn("❌ [ERROR] No se encontro una orden ABIERTA con numeroOrden: {}", numeroOrden);
+            log.warn("❌ [ERROR] No se encontro una orden ABIERTA/PENDIENTE con numeroOrden: {}", numeroOrden);
             throw new OrdenNoEncontradaException(numeroOrden);
         }
 
@@ -216,9 +216,9 @@ public class OrdenService {
     public OrdenResponseDTO sumarCantidadPorIdDetalle(String numeroOrden, Long idDetalle, int cantidadASumar) {
         log.info("🔍 [CONSULTA] Sumando cantidad al detalle id: {} en orden: {}", idDetalle, numeroOrden);
 
-        Optional<OrdenEntity> ordenOpt = ordenRepository.findByNumeroOrdenAndEstadoOrden(numeroOrden, ESTADO_ABIERTA);
+        Optional<OrdenEntity> ordenOpt = ordenRepository.findByNumeroOrdenAndEstadoOrdenIn(numeroOrden, List.of(ESTADO_ABIERTA, "PENDIENTE"));
         if (ordenOpt.isEmpty()) {
-            log.warn("❌ [ERROR] No se encontro una orden ABIERTA con numeroOrden: {}", numeroOrden);
+            log.warn("❌ [ERROR] No se encontro una orden ABIERTA/PENDIENTE con numeroOrden: {}", numeroOrden);
             throw new OrdenNoEncontradaException(numeroOrden);
         }
 
