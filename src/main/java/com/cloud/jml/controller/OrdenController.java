@@ -7,6 +7,7 @@ import com.cloud.jml.dto.OrdenResponseDTO;
 import com.cloud.jml.service.OrdenService;
 import jakarta.validation.Valid;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.dao.PessimisticLockingFailureException;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -39,11 +40,30 @@ public class OrdenController {
     public ResponseEntity<OrdenResponseDTO> crearOrdenDeVenta(@Valid @RequestBody OrdenRequestDTO ordenRequestDTO) {
         log.info("📥 [SOLICITUD] Creacion o actualizacion de orden de venta para cliente: {}", ordenRequestDTO.getNombreCliente());
 
-        OrdenResponseDTO crearOrdenVentaResponse = ordenService.crearOrdenDeVenta(ordenRequestDTO);
+        int maxIntentos = 3;
+        int intento = 0;
 
-        log.info("📤 [RESPUESTA] Orden procesada exitosamente para cliente: {}", crearOrdenVentaResponse.getNombreCliente());
+        while (true) {
+            try {
+                OrdenResponseDTO crearOrdenVentaResponse = ordenService.crearOrdenDeVenta(ordenRequestDTO);
 
-        return ResponseEntity.ok(crearOrdenVentaResponse);
+                log.info("📤 [RESPUESTA] Orden procesada exitosamente para cliente: {}", crearOrdenVentaResponse.getNombreCliente());
+
+                return ResponseEntity.ok(crearOrdenVentaResponse);
+            } catch (PessimisticLockingFailureException e) {
+                intento++;
+
+                log.warn("⚠️ [DEADLOCK] Reintento {} de {} para cliente: {}", intento, maxIntentos, ordenRequestDTO.getNombreCliente());
+
+                if (intento >= maxIntentos) throw e;
+
+                try {
+                    Thread.sleep(150L * intento);
+                } catch (InterruptedException ie) {
+                    Thread.currentThread().interrupt();
+                }
+            }
+        }
     }
 
     @PutMapping("/restar/{numeroOrden}")
