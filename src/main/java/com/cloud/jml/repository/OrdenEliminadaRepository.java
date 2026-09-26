@@ -16,4 +16,9 @@ public interface OrdenEliminadaRepository extends JpaRepository<OrdenEliminadaEn
 
     // Registros cuya fecha de expiracion ya paso (para limpieza automatica opcional)
     List<OrdenEliminadaEntity> findByFechaExpiracionBefore(LocalDateTime fecha);
+
+    // Filtros de papelera
+    List<OrdenEliminadaEntity> findByFechaEliminacionBetweenOrderByFechaEliminacionDesc(LocalDateTime inicio, LocalDateTime fin);
+
+    List<OrdenEliminadaEntity> findByEliminadoPorIdentificacionContainingIgnoreCaseOrderByFechaEliminacionDesc(String eliminadoPorId);
 }

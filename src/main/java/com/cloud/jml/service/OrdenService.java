@@ -526,6 +526,55 @@ public class OrdenService {
         log.info("Registro eliminado definitivamente de la papelera. id: {}", id);
     }
 
+    @Transactional(readOnly = true)
+    public List<OrdenEliminadaResponseDTO> listarPapeleraPorFecha(String fechaInicio, String fechaFin) {
+        log.info("📥 [PAPELERA] Filtrando ordenes en papelera por fecha de eliminacion: {} - {}", fechaInicio, fechaFin);
+
+        LocalDateTime inicio = ordenUtils.parsearFechaInicio(fechaInicio);
+        LocalDateTime fin = ordenUtils.parsearFechaFin(fechaFin);
+
+        List<OrdenEliminadaResponseDTO> resultado = ordenEliminadaRepository
+                .findByFechaEliminacionBetweenOrderByFechaEliminacionDesc(inicio, fin)
+                .stream()
+                .map(mapper::mapEliminadaToDTO)
+                .toList();
+
+        log.info("📤 [PAPELERA] Se retornan {} ordenes filtradas por fecha", resultado.size());
+
+        return resultado;
+    }
+
+    @Transactional(readOnly = true)
+    public List<OrdenEliminadaResponseDTO> listarPapeleraPorEliminadoPor(String eliminadoPorId) {
+        log.info("📥 [PAPELERA] Filtrando ordenes en papelera por eliminadoPorId: {}", eliminadoPorId);
+
+        List<OrdenEliminadaResponseDTO> resultado = ordenEliminadaRepository
+                .findByEliminadoPorIdentificacionContainingIgnoreCaseOrderByFechaEliminacionDesc(eliminadoPorId)
+                .stream()
+                .map(mapper::mapEliminadaToDTO)
+                .toList();
+
+        log.info("📤 [PAPELERA] Se retornan {} ordenes filtradas por eliminadoPor", resultado.size());
+
+        return resultado;
+    }
+
+    @Transactional(readOnly = true)
+    public List<OrdenEliminadaResponseDTO> listarPapeleraPorEstado(String estadoOrden) {
+        log.info("📥 [PAPELERA] Filtrando ordenes en papelera por estado: {}", estadoOrden);
+
+        List<OrdenEliminadaResponseDTO> resultado = ordenEliminadaRepository
+                .findAllByOrderByFechaEliminacionDesc()
+                .stream()
+                .filter(e -> estadoOrden.equalsIgnoreCase(e.getEstadoOrden()))
+                .map(mapper::mapEliminadaToDTO)
+                .toList();
+
+        log.info("📤 [PAPELERA] Se retornan {} ordenes con estado: {}", resultado.size(), estadoOrden);
+
+        return resultado;
+    }
+
     @Transactional
     public OrdenResponseDTO cerrarOrdenConPagosMixtos(CerrarOrdenRequestDTO cerrarRequest) {
         String identificacionCliente = cerrarRequest.getIdentificacionCliente();

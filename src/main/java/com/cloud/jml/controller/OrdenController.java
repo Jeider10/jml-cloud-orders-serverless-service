@@ -219,6 +219,53 @@ public class OrdenController {
         return ResponseEntity.ok(lista);
     }
 
+    @GetMapping("/papelera/fecha")
+    public ResponseEntity<List<OrdenEliminadaResponseDTO>> listarPapeleraPorFecha(
+            @RequestParam("fechaInicio") String fechaInicio,
+            @RequestParam("fechaFin") String fechaFin) {
+
+        log.info("📥 [SOLICITUD] Filtrar papelera por fecha: {} - {}", fechaInicio, fechaFin);
+
+        List<OrdenEliminadaResponseDTO> lista = ordenService.listarPapeleraPorFecha(fechaInicio, fechaFin);
+
+        if (lista.isEmpty()) {
+            return ResponseEntity.noContent().build();
+        }
+
+        return ResponseEntity.ok(lista);
+    }
+
+    @GetMapping("/papelera/eliminadoPor")
+    public ResponseEntity<List<OrdenEliminadaResponseDTO>> listarPapeleraPorEliminadoPor(
+            @RequestParam("eliminadoPorId") String eliminadoPorId) {
+
+        log.info("📥 [SOLICITUD] Filtrar papelera por eliminadoPorId: {}", eliminadoPorId);
+
+        List<OrdenEliminadaResponseDTO> lista = ordenService.listarPapeleraPorEliminadoPor(eliminadoPorId);
+
+        if (lista.isEmpty()) {
+            return ResponseEntity.noContent().build();
+        }
+
+        return ResponseEntity.ok(lista);
+    }
+
+    @GetMapping("/papelera/estado")
+    public ResponseEntity<List<OrdenEliminadaResponseDTO>> listarPapeleraPorEstado(
+            @RequestParam("estadoOrden") String estadoOrden) {
+
+        log.info("📥 [SOLICITUD] Filtrar papelera por estado: {}", estadoOrden);
+
+        List<OrdenEliminadaResponseDTO> lista = ordenService.listarPapeleraPorEstado(estadoOrden);
+
+        if (lista.isEmpty()) {
+            return ResponseEntity.noContent().build();
+        }
+
+        log.info("📤 [RESPUESTA] Se retornan {} ordenes en papelera con estado: {}", lista.size(), estadoOrden);
+        return ResponseEntity.ok(lista);
+    }
+
     @DeleteMapping("/papelera/{id}/definitivo")
     public ResponseEntity<Void> eliminarDefinitivoPapelera(@PathVariable Long id) {
         log.info("📥 [SOLICITUD] Eliminacion definitiva del registro de papelera id: {}", id);
