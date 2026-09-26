@@ -210,10 +210,6 @@ public class OrdenController {
 
         List<OrdenEliminadaResponseDTO> lista = ordenService.listarPapelera();
 
-        if (lista.isEmpty()) {
-            return ResponseEntity.noContent().build();
-        }
-
         log.info("📤 [RESPUESTA] Se retornan {} registros de papelera", lista.size());
 
         return ResponseEntity.ok(lista);
@@ -228,9 +224,7 @@ public class OrdenController {
 
         List<OrdenEliminadaResponseDTO> lista = ordenService.listarPapeleraPorFecha(fechaInicio, fechaFin);
 
-        if (lista.isEmpty()) {
-            return ResponseEntity.noContent().build();
-        }
+        log.info("📤 [RESPUESTA] Se retornan {} registros filtrados por fecha", lista.size());
 
         return ResponseEntity.ok(lista);
     }
@@ -243,9 +237,7 @@ public class OrdenController {
 
         List<OrdenEliminadaResponseDTO> lista = ordenService.listarPapeleraPorEliminadoPor(eliminadoPorId);
 
-        if (lista.isEmpty()) {
-            return ResponseEntity.noContent().build();
-        }
+        log.info("📤 [RESPUESTA] Se retornan {} registros filtrados por eliminadoPor", lista.size());
 
         return ResponseEntity.ok(lista);
     }
@@ -258,11 +250,8 @@ public class OrdenController {
 
         List<OrdenEliminadaResponseDTO> lista = ordenService.listarPapeleraPorEstado(estadoOrden);
 
-        if (lista.isEmpty()) {
-            return ResponseEntity.noContent().build();
-        }
-
         log.info("📤 [RESPUESTA] Se retornan {} ordenes en papelera con estado: {}", lista.size(), estadoOrden);
+
         return ResponseEntity.ok(lista);
     }
 
