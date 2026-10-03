@@ -74,7 +74,7 @@ public class OrdenController {
     @PutMapping("/restar/{numeroOrden}")
     public ResponseEntity<OrdenResponseDTO> restarCantidadProducto(
             @PathVariable("numeroOrden") String numeroOrden,
-            @RequestParam("codigo") Long codigoProducto,
+            @RequestParam("codigo") String codigoProducto,
             @RequestParam("cantidad") int cantidadARestar) {
 
         log.info("📥 [SOLICITUD] Restar producto en orden -> numeroOrden: {}, codigoProducto: {}, cantidadARestar: {}", numeroOrden, codigoProducto, cantidadARestar);

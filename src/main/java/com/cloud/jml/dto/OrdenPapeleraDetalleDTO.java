@@ -11,7 +11,7 @@ import lombok.Setter;
 @AllArgsConstructor
 public class OrdenPapeleraDetalleDTO {
 
-    private Long codigoProducto;
+    private String codigoProducto;
     private String nombreProducto;
     private String descripcion;
     private Long cantidad;

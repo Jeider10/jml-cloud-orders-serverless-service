@@ -20,8 +20,8 @@ public class OrdenDetalleEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    // codigo del producto (identificador dentro del catalogo)
-    private Long codigo;
+    // codigo del producto (identificador dentro del catalogo — String para preservar ceros a la izquierda)
+    private String codigo;
     private String producto;
     private String descripcion;
     private Long cantidad;

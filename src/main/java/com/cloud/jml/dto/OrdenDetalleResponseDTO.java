@@ -12,7 +12,7 @@ import lombok.Setter;
 public class OrdenDetalleResponseDTO {
 
     private Long id;
-    private Long codigo;
+    private String codigo;
     private String producto;
     private String descripcion;
     private Long cantidad;

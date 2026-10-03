@@ -106,7 +106,7 @@ public class OrdenService {
     }
 
     @Transactional
-    public OrdenResponseDTO restarCantidadProducto(String numeroOrden, Long codigoProducto, int cantidadARestar) {
+    public OrdenResponseDTO restarCantidadProducto(String numeroOrden, String codigoProducto, int cantidadARestar) {
         log.info("🔍 [CONSULTA] Verificando existencia de orden ABIERTA con numeroOrden: {}", numeroOrden);
 
         // 1) Buscar la orden ABIERTA o PENDIENTE
@@ -186,7 +186,7 @@ public class OrdenService {
                 .findFirst()
                 .orElseThrow(() -> {
                     log.warn("❌ [ERROR] No se encontro detalle con id: {} en orden: {}", idDetalle, numeroOrden);
-                    return new ProductoNoEncontradoException(idDetalle);
+                    return new ProductoNoEncontradoException(String.valueOf(idDetalle));
                 });
 
         if (cantidadARestar <= 0) {
@@ -230,7 +230,7 @@ public class OrdenService {
                 .findFirst()
                 .orElseThrow(() -> {
                     log.warn("❌ [ERROR] No se encontro detalle con id: {} en orden: {}", idDetalle, numeroOrden);
-                    return new ProductoNoEncontradoException(idDetalle);
+                    return new ProductoNoEncontradoException(String.valueOf(idDetalle));
                 });
 
         if (cantidadASumar <= 0) {

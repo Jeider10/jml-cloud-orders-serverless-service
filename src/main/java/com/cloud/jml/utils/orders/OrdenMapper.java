@@ -264,7 +264,7 @@ public class OrdenMapper {
     /**
      * Actualiza o elimina un detalle segun la nueva cantidad.
      */
-    public void actualizarOEliminarDetalle(OrdenEntity orden, OrdenDetalleEntity detalle, Long codigoProducto, long cantidadARestar, long nuevaCantidad) {
+    public void actualizarOEliminarDetalle(OrdenEntity orden, OrdenDetalleEntity detalle, String codigoProducto, long cantidadARestar, long nuevaCantidad) {
         log.info("⚖️ [SOLICITUD] Procesando detalle: codigo={}, cantidadARestar={}", codigoProducto, cantidadARestar);
 
         if (nuevaCantidad <= 0) {

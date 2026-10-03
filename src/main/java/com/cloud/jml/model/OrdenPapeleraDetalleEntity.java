@@ -28,7 +28,7 @@ public class OrdenPapeleraDetalleEntity {
     private OrdenEliminadaEntity papelera;
 
     @Column(name = "codigo_producto")
-    private Long codigoProducto;
+    private String codigoProducto;
 
     @Column(name = "nombre_producto", length = 200)
     private String nombreProducto;

@@ -268,7 +268,7 @@ public class OrdenUtils {
     /**
      * Busca un detalle por codigo de producto.
      */
-    public OrdenDetalleEntity buscarDetallePorCodigo(OrdenEntity orden, Long codigoProducto) {
+    public OrdenDetalleEntity buscarDetallePorCodigo(OrdenEntity orden, String codigoProducto) {
         log.info("🔍 [SOLICITUD] Buscando detalle por codigo: {}", codigoProducto);
 
         if (orden.getDetalles() != null) {

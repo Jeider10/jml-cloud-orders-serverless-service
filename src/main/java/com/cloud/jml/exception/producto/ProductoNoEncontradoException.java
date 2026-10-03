@@ -4,7 +4,7 @@ import org.springframework.http.HttpStatus;
 
 public class ProductoNoEncontradoException extends ProductoRuntimeException {
 
-    public ProductoNoEncontradoException(Long codigoProducto) {
+    public ProductoNoEncontradoException(String codigoProducto) {
         super(
                 HttpStatus.NOT_FOUND,
                 "❌ [CONSULTA] No se encontro ningun producto con el codigo: " + codigoProducto

@@ -4,7 +4,7 @@ import org.springframework.http.HttpStatus;
 
 public class StockInsuficienteException extends StockRuntimeException {
 
-    public StockInsuficienteException(Long codigoProducto, long cantidadActual, int cantidadARestar) {
+    public StockInsuficienteException(String codigoProducto, long cantidadActual, int cantidadARestar) {
         super(
                 HttpStatus.BAD_REQUEST,
                 "⚠️ [STOCK] Stock insuficiente para el producto " + codigoProducto +
