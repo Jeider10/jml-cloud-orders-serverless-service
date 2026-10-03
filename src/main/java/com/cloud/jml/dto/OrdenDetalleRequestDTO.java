@@ -14,8 +14,9 @@ import lombok.Setter;
 @AllArgsConstructor // Constructor con todos los argumentos
 public class OrdenDetalleRequestDTO {
 
-    @NotNull(message = "El campo 'codigo' es obligatorio")
-    private Long codigo;
+    @NotBlank(message = "El campo 'codigo' es obligatorio")
+    @Size(max = 50, message = "El campo 'codigo' no puede exceder 50 caracteres")
+    private String codigo;
 
     @NotBlank(message = "El campo 'producto' es obligatorio")
     @Size(max = 100, message = "El campo 'producto' no puede exceder 100 caracteres")
