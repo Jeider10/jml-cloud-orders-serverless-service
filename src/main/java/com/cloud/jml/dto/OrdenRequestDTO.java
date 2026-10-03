@@ -33,6 +33,9 @@ public class OrdenRequestDTO {
     @Size(max = 100, message = "El campo 'apellidoEmpleado' no puede exceder 100 caracteres")
     private String apellidoEmpleado;
 
+    @Size(max = 50, message = "El campo 'rolEmpleado' no puede exceder 50 caracteres")
+    private String rolEmpleado;
+
     private Long identificacionProveedor;
 
     @Size(max = 100, message = "El campo 'nombreProveedor' no puede exceder 100 caracteres")

@@ -37,6 +37,7 @@ public class OrdenResponseDTO {
     private String identificacionEmpleado;
     private String nombreEmpleado;
     private String apellidoEmpleado;
+    private String rolEmpleado;
 
     private Long identificacionProveedor;
     private String nombreProveedor;

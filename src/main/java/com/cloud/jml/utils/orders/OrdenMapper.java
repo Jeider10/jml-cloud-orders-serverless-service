@@ -41,6 +41,7 @@ public class OrdenMapper {
         ordenEntity.setIdentificacionEmpleado(ordenRequestDTO.getIdentificacionEmpleado());
         ordenEntity.setNombreEmpleado(ordenRequestDTO.getNombreEmpleado());
         ordenEntity.setApellidoEmpleado(ordenRequestDTO.getApellidoEmpleado());
+        ordenEntity.setRolEmpleado(ordenRequestDTO.getRolEmpleado());
         ordenEntity.setIdentificacionProveedor(ordenRequestDTO.getIdentificacionProveedor());
         ordenEntity.setNombreProveedor(ordenRequestDTO.getNombreProveedor());
         ordenEntity.setFechaCreacion(LocalDateTime.now());
@@ -95,6 +96,7 @@ public class OrdenMapper {
         ordenResponseDTO.setIdentificacionEmpleado(ordenEntity.getIdentificacionEmpleado());
         ordenResponseDTO.setNombreEmpleado(ordenEntity.getNombreEmpleado());
         ordenResponseDTO.setApellidoEmpleado(ordenEntity.getApellidoEmpleado());
+        ordenResponseDTO.setRolEmpleado(ordenEntity.getRolEmpleado());
         ordenResponseDTO.setIdentificacionProveedor(ordenEntity.getIdentificacionProveedor());
         ordenResponseDTO.setNombreProveedor(ordenEntity.getNombreProveedor());
         ordenResponseDTO.setTotalCompra(ordenEntity.getTotalCompra());
@@ -187,6 +189,11 @@ public class OrdenMapper {
         ordenEntity.setIdentificacionEmpleado(requestDTO.getIdentificacionEmpleado());
         ordenEntity.setNombreEmpleado(requestDTO.getNombreEmpleado());
         ordenEntity.setApellidoEmpleado(requestDTO.getApellidoEmpleado());
+
+        if (requestDTO.getRolEmpleado() != null) {
+            ordenEntity.setRolEmpleado(requestDTO.getRolEmpleado());
+        }
+
         ordenEntity.setIdentificacionProveedor(requestDTO.getIdentificacionProveedor());
         ordenEntity.setNombreProveedor(requestDTO.getNombreProveedor());
         ordenEntity.setFechaActualizacion(LocalDateTime.now());
