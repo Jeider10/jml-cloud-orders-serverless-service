@@ -26,8 +26,65 @@ public class OrdenMapper {
         log.info("🔥 OrdenMapper inicializado correctamente.");
     }
 
+    // ─────────────────────────────────────────────────────────────────────────
+    // Valores por defecto para campos obligatorios de una orden
+    // ─────────────────────────────────────────────────────────────────────────
+    private static final String DEFAULT_IDENTIFICACION_CLIENTE = "1111111111";
+    private static final String DEFAULT_NOMBRE_CLIENTE = "CONSUMIDOR";
+    private static final String DEFAULT_APELLIDO_CLIENTE = "FINAL";
+    private static final Long DEFAULT_IDENTIFICACION_PROV = 0L;
+    private static final String DEFAULT_NOMBRE_PROV = "SIN PROVEEDOR";
+
+    /**
+     * Garantiza que todos los campos criticos de persona (cliente, empleado,
+     * proveedor) tengan un valor no nulo/vacio antes de persistir la orden.
+     */
+    private void aplicarDefaults(OrdenRequestDTO dto) {
+
+        // ── CLIENTE ────────────────────────────────────────────────────────
+        if (dto.getIdentificacionCliente() == null || dto.getIdentificacionCliente().isBlank()) {
+            log.warn("⚠️ [DEFAULTS] identificacionCliente vacio → asignando '{}'", DEFAULT_IDENTIFICACION_CLIENTE);
+            dto.setIdentificacionCliente(DEFAULT_IDENTIFICACION_CLIENTE);
+        }
+        if (dto.getNombreCliente() == null || dto.getNombreCliente().isBlank()) {
+            log.warn("⚠️ [DEFAULTS] nombreCliente vacio → asignando '{}'", DEFAULT_NOMBRE_CLIENTE);
+            dto.setNombreCliente(DEFAULT_NOMBRE_CLIENTE);
+        }
+        if (dto.getApellidoCliente() == null || dto.getApellidoCliente().isBlank()) {
+            log.warn("⚠️ [DEFAULTS] apellidoCliente vacio → asignando '{}'", DEFAULT_APELLIDO_CLIENTE);
+            dto.setApellidoCliente(DEFAULT_APELLIDO_CLIENTE);
+        }
+
+        // ── EMPLEADO ───────────────────────────────────────────────────────
+        // apellidoEmpleado: si viene vacio se extrae de nombreEmpleado (ej. "Juan Perez" → apellido "Perez")
+        if (dto.getApellidoEmpleado() == null || dto.getApellidoEmpleado().isBlank()) {
+            if (dto.getNombreEmpleado() != null && dto.getNombreEmpleado().contains(" ")) {
+                String[] partes = dto.getNombreEmpleado().trim().split("\\s+", 2);
+                dto.setApellidoEmpleado(partes[1]);
+                log.warn("⚠️ [DEFAULTS] apellidoEmpleado vacio → extraido de nombreEmpleado: '{}'", partes[1]);
+            } else {
+                String fallback = dto.getNombreEmpleado() != null ? dto.getNombreEmpleado() : "EMPLEADO";
+                dto.setApellidoEmpleado(fallback);
+                log.warn("⚠️ [DEFAULTS] apellidoEmpleado vacio, sin espacio en nombre → asignando '{}'", fallback);
+            }
+        }
+
+        // ── PROVEEDOR ──────────────────────────────────────────────────────
+        if (dto.getIdentificacionProveedor() == null) {
+            log.warn("⚠️ [DEFAULTS] identificacionProveedor nulo → asignando '{}'", DEFAULT_IDENTIFICACION_PROV);
+            dto.setIdentificacionProveedor(DEFAULT_IDENTIFICACION_PROV);
+        }
+        if (dto.getNombreProveedor() == null || dto.getNombreProveedor().isBlank()) {
+            log.warn("⚠️ [DEFAULTS] nombreProveedor vacio → asignando '{}'", DEFAULT_NOMBRE_PROV);
+            dto.setNombreProveedor(DEFAULT_NOMBRE_PROV);
+        }
+    }
+
     public OrdenEntity mapRequestDtoToEntity(OrdenRequestDTO ordenRequestDTO) {
         log.info("📦 [MAPEO] Iniciando mapeo DTO -> Entity para creacion de orden.");
+
+        // Aplicar valores por defecto antes de mapear
+        aplicarDefaults(ordenRequestDTO);
 
         OrdenEntity ordenEntity = new OrdenEntity();
 
@@ -182,6 +239,9 @@ public class OrdenMapper {
      */
     public void mapDetalleOrderExistente(OrdenEntity ordenEntity, OrdenRequestDTO requestDTO) {
         log.info("✏️ [SOLICITUD] Actualizando orden existente: {}", ordenEntity.getNumeroOrden());
+
+        // Aplicar valores por defecto antes de actualizar
+        aplicarDefaults(requestDTO);
 
         ordenEntity.setIdentificacionCliente(requestDTO.getIdentificacionCliente());
         ordenEntity.setNombreCliente(requestDTO.getNombreCliente());
