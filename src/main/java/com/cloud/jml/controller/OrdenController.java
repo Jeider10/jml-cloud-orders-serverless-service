@@ -31,6 +31,11 @@ public class OrdenController {
 
         List<OrdenResponseDTO> ordenes = ordenService.listarTodasLasOrdenes();
 
+        if (ordenes.isEmpty()) {
+            log.info("📤 [RESPUESTA] No hay ordenes de venta — lista vacia");
+            return ResponseEntity.ok(List.of());
+        }
+
         log.info("📤 [RESPUESTA] Se retornan {} ordenes de venta", ordenes.size());
 
         return ResponseEntity.ok(ordenes);
@@ -146,6 +151,11 @@ public class OrdenController {
 
         List<OrdenResponseDTO> ordenes = ordenService.listarOrdenesPorEstado(estadoOrden);
 
+        if (ordenes.isEmpty()) {
+            log.info("📤 [RESPUESTA] No hay ordenes con estado: {} — lista vacia", estadoOrden);
+            return ResponseEntity.ok(List.of());
+        }
+
         log.info("📤 [RESPUESTA] Se retornan {} ordenes con estado: {}", ordenes.size(), estadoOrden);
 
         return ResponseEntity.ok(ordenes);
@@ -159,6 +169,11 @@ public class OrdenController {
         log.info("📥 [SOLICITUD] Solicitud para listar ordenes del cliente: {} con estado: {}", identificacionCliente, estadoOrden);
 
         List<OrdenResponseDTO> ordenes = ordenService.listarOrdenesPorClienteYEstado(identificacionCliente, estadoOrden);
+
+        if (ordenes.isEmpty()) {
+            log.info("📤 [RESPUESTA] No hay ordenes del cliente: {} con estado: {} — lista vacia", identificacionCliente, estadoOrden);
+            return ResponseEntity.ok(List.of());
+        }
 
         log.info("📤 [RESPUESTA] Se retornan {} ordenes del cliente: {} con estado: {}", ordenes.size(), identificacionCliente, estadoOrden);
 
@@ -175,8 +190,8 @@ public class OrdenController {
         List<OrdenResponseDTO> ordenesFecha = ordenService.obtenerOrdenesPorFechaCreacion(fechaInicio, fechaFin);
 
         if (ordenesFecha == null || ordenesFecha.isEmpty()) {
-            log.warn("⚠️ [RESPUESTA] No se encontraron ordenes en el rango de fechas.");
-            return ResponseEntity.noContent().build();
+            log.info("📤 [RESPUESTA] No se encontraron ordenes en el rango {} - {} — lista vacia", fechaInicio, fechaFin);
+            return ResponseEntity.ok(List.of());
         }
 
         log.info("📤 [RESPUESTA] Se retornan {} ordenes en el rango de fechas.", ordenesFecha.size());
@@ -210,6 +225,11 @@ public class OrdenController {
 
         List<OrdenEliminadaResponseDTO> lista = ordenService.listarPapelera();
 
+        if (lista.isEmpty()) {
+            log.info("📤 [RESPUESTA] No hay ordenes en papelera — lista vacia");
+            return ResponseEntity.ok(List.of());
+        }
+
         log.info("📤 [RESPUESTA] Se retornan {} registros de papelera", lista.size());
 
         return ResponseEntity.ok(lista);
@@ -224,6 +244,11 @@ public class OrdenController {
 
         List<OrdenEliminadaResponseDTO> lista = ordenService.listarPapeleraPorFecha(fechaInicio, fechaFin);
 
+        if (lista.isEmpty()) {
+            log.info("📤 [RESPUESTA] No hay ordenes en papelera en el rango {} - {} — lista vacia", fechaInicio, fechaFin);
+            return ResponseEntity.ok(List.of());
+        }
+
         log.info("📤 [RESPUESTA] Se retornan {} registros filtrados por fecha", lista.size());
 
         return ResponseEntity.ok(lista);
@@ -237,6 +262,11 @@ public class OrdenController {
 
         List<OrdenEliminadaResponseDTO> lista = ordenService.listarPapeleraPorEliminadoPor(eliminadoPorId);
 
+        if (lista.isEmpty()) {
+            log.info("📤 [RESPUESTA] No hay ordenes en papelera eliminadas por: {} — lista vacia", eliminadoPorId);
+            return ResponseEntity.ok(List.of());
+        }
+
         log.info("📤 [RESPUESTA] Se retornan {} registros filtrados por eliminadoPor", lista.size());
 
         return ResponseEntity.ok(lista);
@@ -249,6 +279,11 @@ public class OrdenController {
         log.info("📥 [SOLICITUD] Filtrar papelera por estado: {}", estadoOrden);
 
         List<OrdenEliminadaResponseDTO> lista = ordenService.listarPapeleraPorEstado(estadoOrden);
+
+        if (lista.isEmpty()) {
+            log.info("📤 [RESPUESTA] No hay ordenes en papelera con estado: {} — lista vacia", estadoOrden);
+            return ResponseEntity.ok(List.of());
+        }
 
         log.info("📤 [RESPUESTA] Se retornan {} ordenes en papelera con estado: {}", lista.size(), estadoOrden);
 
@@ -295,8 +330,8 @@ public class OrdenController {
         List<OrdenResponseDTO> ordenes = ordenService.buscarOrdenes(estado, cliente, idCliente, vendedor, idVendedor, factura, producto, fechaInicio, fechaFin);
 
         if (ordenes == null || ordenes.isEmpty()) {
-            log.warn("⚠️ [RESPUESTA] No se encontraron ordenes con los filtros proporcionados.");
-            return ResponseEntity.noContent().build();
+            log.info("📤 [RESPUESTA] No se encontraron ordenes con los filtros proporcionados — lista vacia");
+            return ResponseEntity.ok(List.of());
         }
 
         log.info("📤 [RESPUESTA] Se retornan {} ordenes con los filtros aplicados.", ordenes.size());
@@ -311,8 +346,8 @@ public class OrdenController {
         List<OrdenResponseDTO> ordenes = ordenService.buscarPorNombreCliente(nombreCliente);
 
         if (ordenes == null || ordenes.isEmpty()) {
-            log.warn("⚠️ [RESPUESTA] No se encontraron ordenes para el cliente: {}", nombreCliente);
-            return ResponseEntity.noContent().build();
+            log.info("📤 [RESPUESTA] No se encontraron ordenes para el cliente: {} — lista vacia", nombreCliente);
+            return ResponseEntity.ok(List.of());
         }
 
         log.info("📤 [RESPUESTA] Se retornan {} ordenes para cliente: {}", ordenes.size(), nombreCliente);
@@ -327,8 +362,8 @@ public class OrdenController {
         List<OrdenResponseDTO> ordenes = ordenService.buscarPorIdCliente(idCliente);
 
         if (ordenes == null || ordenes.isEmpty()) {
-            log.warn("⚠️ [RESPUESTA] No se encontraron ordenes para el ID cliente: {}", idCliente);
-            return ResponseEntity.noContent().build();
+            log.info("📤 [RESPUESTA] No se encontraron ordenes para el ID cliente: {} — lista vacia", idCliente);
+            return ResponseEntity.ok(List.of());
         }
 
         log.info("📤 [RESPUESTA] Se retornan {} ordenes para ID cliente: {}", ordenes.size(), idCliente);
@@ -343,8 +378,8 @@ public class OrdenController {
         List<OrdenResponseDTO> ordenes = ordenService.buscarPorNombreVendedor(nombreVendedor);
 
         if (ordenes == null || ordenes.isEmpty()) {
-            log.warn("⚠️ [RESPUESTA] No se encontraron ordenes para el vendedor: {}", nombreVendedor);
-            return ResponseEntity.noContent().build();
+            log.info("📤 [RESPUESTA] No se encontraron ordenes para el vendedor: {} — lista vacia", nombreVendedor);
+            return ResponseEntity.ok(List.of());
         }
 
         log.info("📤 [RESPUESTA] Se retornan {} ordenes para vendedor: {}", ordenes.size(), nombreVendedor);
@@ -359,8 +394,8 @@ public class OrdenController {
         List<OrdenResponseDTO> ordenes = ordenService.buscarPorIdVendedor(idVendedor);
 
         if (ordenes == null || ordenes.isEmpty()) {
-            log.warn("⚠️ [RESPUESTA] No se encontraron ordenes para el ID vendedor: {}", idVendedor);
-            return ResponseEntity.noContent().build();
+            log.info("📤 [RESPUESTA] No se encontraron ordenes para el ID vendedor: {} — lista vacia", idVendedor);
+            return ResponseEntity.ok(List.of());
         }
 
         log.info("📤 [RESPUESTA] Se retornan {} ordenes para ID vendedor: {}", ordenes.size(), idVendedor);
@@ -375,8 +410,8 @@ public class OrdenController {
         List<OrdenResponseDTO> ordenes = ordenService.buscarPorNumeroFactura(factura);
 
         if (ordenes == null || ordenes.isEmpty()) {
-            log.warn("⚠️ [RESPUESTA] No se encontraron ordenes con numero de factura: {}", factura);
-            return ResponseEntity.noContent().build();
+            log.info("📤 [RESPUESTA] No se encontraron ordenes con numero de factura: {} — lista vacia", factura);
+            return ResponseEntity.ok(List.of());
         }
 
         log.info("📤 [RESPUESTA] Se retornan {} ordenes para factura: {}", ordenes.size(), factura);
@@ -391,8 +426,8 @@ public class OrdenController {
         List<OrdenResponseDTO> ordenes = ordenService.buscarPorProducto(producto);
 
         if (ordenes == null || ordenes.isEmpty()) {
-            log.warn("⚠️ [RESPUESTA] No se encontraron ordenes con producto: {}", producto);
-            return ResponseEntity.noContent().build();
+            log.info("📤 [RESPUESTA] No se encontraron ordenes con producto: {} — lista vacia", producto);
+            return ResponseEntity.ok(List.of());
         }
 
         log.info("📤 [RESPUESTA] Se retornan {} ordenes con producto: {}", ordenes.size(), producto);
