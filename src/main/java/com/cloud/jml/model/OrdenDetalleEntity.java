@@ -26,6 +26,9 @@ public class OrdenDetalleEntity {
     private String descripcion;
     private Long cantidad;
     private Long precio;
+    // Snapshot del precio de costo al momento de la venta — permite calcular ganancia historica
+    @Column(name = "precio_costo")
+    private Long precioCosto;
 
     // Relacion muchos a uno: varios detalles pertenecen a una misma orden; Carga perezosa. Carga diferida para optimizar rendimiento
     @ManyToOne(fetch = FetchType.LAZY) // Solo se trae desde la base de datos cuando realmente accedes al campo orden

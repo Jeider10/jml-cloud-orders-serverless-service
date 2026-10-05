@@ -30,4 +30,7 @@ public class OrdenDetalleRequestDTO {
 
     @NotNull(message = "El campo 'precio' es obligatorio")
     private Long precio;
+
+    // Snapshot del precio de costo al momento de la venta. Opcional — null si el producto no tiene costo registrado
+    private Long precioCosto;
 }

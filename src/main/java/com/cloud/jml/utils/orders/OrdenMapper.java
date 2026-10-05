@@ -134,6 +134,7 @@ public class OrdenMapper {
         detalleEntity.setDescripcion(detalleDTO.getDescripcion());
         detalleEntity.setCantidad(detalleDTO.getCantidad());
         detalleEntity.setPrecio(detalleDTO.getPrecio());
+        detalleEntity.setPrecioCosto(detalleDTO.getPrecioCosto());
 
         log.debug("✅ [MAPEO] Detalle mapeado correctamente: codigo={}, producto={}", detalleDTO.getCodigo(), detalleDTO.getProducto());
 
@@ -208,6 +209,7 @@ public class OrdenMapper {
         responseDTO.setDescripcion(detalleEntity.getDescripcion());
         responseDTO.setCantidad(detalleEntity.getCantidad());
         responseDTO.setPrecio(detalleEntity.getPrecio());
+        responseDTO.setPrecioCosto(detalleEntity.getPrecioCosto());
 
         if (detalleEntity.getFechaCreacion() != null) {
             responseDTO.setFechaCreacion(ordenFormatearFecha.formatearFecha(detalleEntity.getFechaCreacion()));

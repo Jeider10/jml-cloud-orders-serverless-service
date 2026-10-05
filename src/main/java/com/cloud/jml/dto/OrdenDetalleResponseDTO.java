@@ -17,6 +17,7 @@ public class OrdenDetalleResponseDTO {
     private String descripcion;
     private Long cantidad;
     private Long precio;
+    private Long precioCosto;
     private String fechaCreacion;
     private String fechaActualizacion;
 }
