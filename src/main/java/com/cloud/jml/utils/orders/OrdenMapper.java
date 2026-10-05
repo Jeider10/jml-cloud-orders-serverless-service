@@ -312,8 +312,10 @@ public class OrdenMapper {
         dto.setNumeroFactura(e.getNumeroFactura());
         dto.setIdentificacionCliente(e.getIdentificacionCliente());
         dto.setNombreCliente(e.getNombreCliente());
+        dto.setApellidoCliente(e.getApellidoCliente());
         dto.setIdentificacionEmpleado(e.getIdentificacionEmpleado());
         dto.setNombreEmpleado(e.getNombreEmpleado());
+        dto.setApellidoEmpleado(e.getApellidoEmpleado());
         dto.setTotalCompra(e.getTotalCompra());
         dto.setEliminadoPorIdentificacion(e.getEliminadoPorIdentificacion());
         dto.setEliminadoPorNombre(e.getEliminadoPorNombre());

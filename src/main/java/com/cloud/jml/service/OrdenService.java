@@ -395,8 +395,10 @@ public class OrdenService {
         registro.setNumeroFactura(ordenEntity.getNumeroFactura());
         registro.setIdentificacionCliente(ordenEntity.getIdentificacionCliente());
         registro.setNombreCliente(ordenEntity.getNombreCliente());
+        registro.setApellidoCliente(ordenEntity.getApellidoCliente());
         registro.setIdentificacionEmpleado(ordenEntity.getIdentificacionEmpleado());
         registro.setNombreEmpleado(ordenEntity.getNombreEmpleado());
+        registro.setApellidoEmpleado(ordenEntity.getApellidoEmpleado());
         registro.setTotalCompra(ordenEntity.getTotalCompra());
         registro.setEliminadoPorIdentificacion(eliminadoPorIdentificacion);
         registro.setEliminadoPorNombre(eliminadoPorNombre);

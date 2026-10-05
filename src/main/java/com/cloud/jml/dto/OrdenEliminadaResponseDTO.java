@@ -19,8 +19,10 @@ public class OrdenEliminadaResponseDTO {
     private String numeroFactura;
     private String identificacionCliente;
     private String nombreCliente;
+    private String apellidoCliente;
     private String identificacionEmpleado;
     private String nombreEmpleado;
+    private String apellidoEmpleado;
     private Long totalCompra;
 
     // Auditoria

@@ -42,11 +42,17 @@ public class OrdenEliminadaEntity {
     @Column(name = "nombre_cliente", length = 200)
     private String nombreCliente;
 
+    @Column(name = "apellido_cliente", length = 200)
+    private String apellidoCliente;
+
     @Column(name = "identificacion_empleado", length = 50)
     private String identificacionEmpleado;
 
     @Column(name = "nombre_empleado", length = 200)
     private String nombreEmpleado;
+
+    @Column(name = "apellido_empleado", length = 200)
+    private String apellidoEmpleado;
 
     @Column(name = "total_compra")
     private Long totalCompra;
