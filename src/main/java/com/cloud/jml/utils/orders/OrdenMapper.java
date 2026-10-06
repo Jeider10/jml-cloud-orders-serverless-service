@@ -9,6 +9,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
 import java.time.LocalDateTime;
+import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
@@ -50,9 +51,19 @@ public class OrdenMapper {
             log.warn("⚠️ [DEFAULTS] nombreCliente vacio → asignando '{}'", DEFAULT_NOMBRE_CLIENTE);
             dto.setNombreCliente(DEFAULT_NOMBRE_CLIENTE);
         }
+        // apellidoCliente: solo asignar "FINAL" cuando el cliente es CONSUMIDOR FINAL.
+        // Si hay un cliente real (nombre distinto al default), dejar el apellido como viene
+        // (puede ser vacio) para no contaminar el nombre del cliente con "FINAL".
         if (dto.getApellidoCliente() == null || dto.getApellidoCliente().isBlank()) {
-            log.warn("⚠️ [DEFAULTS] apellidoCliente vacio → asignando '{}'", DEFAULT_APELLIDO_CLIENTE);
-            dto.setApellidoCliente(DEFAULT_APELLIDO_CLIENTE);
+            boolean esConsumidorFinal = DEFAULT_NOMBRE_CLIENTE.equalsIgnoreCase(dto.getNombreCliente());
+            if (esConsumidorFinal) {
+                log.warn("⚠️ [DEFAULTS] apellidoCliente vacio + CONSUMIDOR FINAL → asignando '{}'", DEFAULT_APELLIDO_CLIENTE);
+                dto.setApellidoCliente(DEFAULT_APELLIDO_CLIENTE);
+            } else {
+                // Cliente real sin apellido — dejar vacio, no poner "FINAL"
+                log.warn("⚠️ [DEFAULTS] apellidoCliente vacio para cliente real '{}' → se deja vacio", dto.getNombreCliente());
+                dto.setApellidoCliente("");
+            }
         }
 
         // ── EMPLEADO ───────────────────────────────────────────────────────
@@ -159,6 +170,12 @@ public class OrdenMapper {
         ordenResponseDTO.setNombreProveedor(ordenEntity.getNombreProveedor());
         ordenResponseDTO.setTotalCompra(ordenEntity.getTotalCompra());
         ordenResponseDTO.setValorRecibido(ordenEntity.getValorRecibido());
+
+        // Calcular totalFinal = totalCompra - descuentoAplicado (campo calculado para el frontend)
+        Long totalCompra = ordenEntity.getTotalCompra() != null ? ordenEntity.getTotalCompra() : 0L;
+        Long descuentoApl = ordenEntity.getDescuentoAplicado() != null ? ordenEntity.getDescuentoAplicado() : 0L;
+        ordenResponseDTO.setTotalFinal(Math.max(totalCompra - descuentoApl, 0L));
+
         ordenResponseDTO.setCufe(ordenEntity.getCufe());
 
         // 🔹 Mapeo campos de descuento
@@ -210,6 +227,11 @@ public class OrdenMapper {
         responseDTO.setCantidad(detalleEntity.getCantidad());
         responseDTO.setPrecio(detalleEntity.getPrecio());
         responseDTO.setPrecioCosto(detalleEntity.getPrecioCosto());
+
+        // Calcular subtotal = precio × cantidad (campo calculado para el frontend)
+        Long precio = detalleEntity.getPrecio() != null ? detalleEntity.getPrecio() : 0L;
+        Long cantidad = detalleEntity.getCantidad() != null ? detalleEntity.getCantidad() : 0L;
+        responseDTO.setSubtotal(precio * cantidad);
 
         if (detalleEntity.getFechaCreacion() != null) {
             responseDTO.setFechaCreacion(ordenFormatearFecha.formatearFecha(detalleEntity.getFechaCreacion()));
@@ -328,6 +350,9 @@ public class OrdenMapper {
 
         if (e.getFechaExpiracion() != null) {
             dto.setFechaExpiracion(e.getFechaExpiracion().toString());
+            // Calcular dias restantes usando reloj del servidor
+            long dias = ChronoUnit.DAYS.between(LocalDateTime.now(), e.getFechaExpiracion());
+            dto.setDiasRestantes(dias);
         }
 
         if (e.getFechaCreacionOriginal() != null) {

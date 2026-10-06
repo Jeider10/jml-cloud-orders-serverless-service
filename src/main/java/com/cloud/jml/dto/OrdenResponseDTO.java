@@ -20,6 +20,8 @@ public class OrdenResponseDTO {
     private String fechaActualizacion;
     private Long totalCompra;
     private Long valorRecibido;
+    // Calculado por el backend: totalCompra - descuentoAplicado
+    private Long totalFinal;
     private String cufe;
 
     // Campos de descuento

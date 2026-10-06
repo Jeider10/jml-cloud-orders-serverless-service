@@ -18,6 +18,8 @@ public class OrdenDetalleResponseDTO {
     private Long cantidad;
     private Long precio;
     private Long precioCosto;
+    // Calculado por el backend: precio × cantidad
+    private Long subtotal;
     private String fechaCreacion;
     private String fechaActualizacion;
 }

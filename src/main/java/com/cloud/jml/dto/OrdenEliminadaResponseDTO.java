@@ -32,6 +32,8 @@ public class OrdenEliminadaResponseDTO {
     private String motivo;
     private String fechaEliminacion;
     private String fechaExpiracion;
+    // Calculado por el backend: dias restantes hasta fechaExpiracion
+    private Long diasRestantes;
     private String fechaCreacionOriginal;
 
     // Detalles de productos para restauracion
